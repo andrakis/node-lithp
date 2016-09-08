@@ -19,7 +19,7 @@ Simple test
 Print a string.
 
 	 ((set Test "test")
-	  (print "Test: " (get Test)))
+	  (print "Test: " Test))
 
 
 Simple function
@@ -27,7 +27,7 @@ Simple function
 
 Define a simple function and call it.
 
-	 ((def add #A,B :: ((+ (get A) (get B))))
+	 ((def add #A,B :: ((+ A B)))
 	  (print "Add 5+10: " (add 5 10)))
 
 
@@ -38,12 +38,12 @@ Define two functions and use comparison logic to print a message
 based on the input.
 
 	  (
-	 	(def is_zero#N :: ((== 0 (get N))))
+	 	(def is_zero#N :: ((== 0 N)))
 		(def test#N :: (
-			(if (is_zero (get N)) (
+			(if (is_zero N) (
 				(print "N is zero")
 			) (else (
-				(print "N is not zero, it is: " (get N))
+				(print "N is not zero, it is: " N)
 			)))
 		))
 		(test 1)
@@ -57,8 +57,8 @@ Define a recursive functino that calculates the factorial of the
 given number, and call it.
 
 	 ((def fac #N :: (
-	    (if (== 0 (get N)) (1)
-	        (else ((* (get N) (fac (- (get N) 1))))))
+	    (if (== 0 N) (1)
+	        (else ((* N (fac (- N 1))))))
 	  ))
 	  (set Test 10)
-	  (print "factorial of " (get Test) ": " (fac (get Test))))
+	  (print "factorial of " Test ": " (fac Test)))
