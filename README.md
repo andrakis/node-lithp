@@ -13,6 +13,16 @@ constructs the correct parsing tree.
 Examples
 ========
 
+The following examples are implemented in `lib/samples.js`.
+
+It shows how the following examples are constructed for
+running in the interpreter. The file `test.js` uses the
+recursive factorial example.
+
+To see further into the details of the interpreter, edit
+the file `lib/lithp.js` and set the `debug` flag to true.
+The output will include function calls and stack depth.
+
 Simple test
 -----------
 
