@@ -1,0 +1,23 @@
+{
+  "name": "lithp",
+  "version": "0.0.2",
+  "description": "A small Lisp-like language with a tiny interpreter",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrakis/node-lithp.git"
+  },
+  "keywords": [
+    "lisp",
+    "lithp"
+  ],
+  "author": "Julian \"Andrakis\" Thatcher",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/andrakis/node-lithp/issues"
+  },
+  "homepage": "https://github.com/andrakis/node-lithp#readme"
+}
