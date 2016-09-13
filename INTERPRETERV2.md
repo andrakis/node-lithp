@@ -46,6 +46,11 @@ However, we must also keep track of several levels of state:
 		** Keeping track of the return values so that either run finally
 		   exits and returns a value, or assigns it to the correct parameter
 		   name and calls a function once the parameters for it are set.
-	
+
 Keeping track of all of this state so that nothing is recursive is a
 difficult task.
+
+Additionally, the interpreter needs to make available .invoke_functioncall
+and .get_param_value. This could be done by using Tuple return values so that
+run can push state and get the param value or invoke the function call and
+return it. This part could be done using run.

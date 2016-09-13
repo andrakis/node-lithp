@@ -1,6 +1,6 @@
 /**
  * Provides:
- *	- switch/*
+ *  - switch/*
  *  - case/2
  *  - default/1
  *
@@ -30,10 +30,10 @@ var lithp = require(__dirname + '/../../index'),
 function lib_case (lithp) {
 	/**
 	 (
-	 	% For use with switch/*, a case statement that returns a function that
+		% For use with switch/*, a case statement that returns a function that
 		% is called by switch/*, and if the Value given by switch/* matches,
 		% {ok, Result} is returned. Otherwise {false} is returned.
-	 	(def case #Eq,Result :: (
+		(def case #Eq,Result :: (
 			% Ignore:
 			% // Return a function that retains access to the outside closure
 			% // variables (Eq and Result) to perform a comparison.
@@ -50,6 +50,7 @@ function lib_case (lithp) {
 				)
 			)
 		))
+	 )
 	*/
 }
 
@@ -110,10 +111,10 @@ function lib_switch (lithp) {
 			(var Default nil)
 			% Test if the given possibility matches. Also detects the presence
 			% of a default clause, and sets Default if found.
-		(def _switch_inner #Possibility ... from lib_switch_inner.
+(def _switch_inner #Possibility ... from lib_switch_inner.
 			% Recursive local function that runs through the list of possibilities,
 			% returning {ok, Result} if a match is found, or {notfound}.
-		(def _switch_loop #List ... from lib_switch_loop
+(def _switch_loop #List ... from lib_switch_loop
 			(var Test (_switch_loop Possibilities))
 			(if (== (tuple-get Test 0) notfound) (
 				% Not found return Default or nil

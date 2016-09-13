@@ -6,6 +6,7 @@ var lithp = require(__dirname + '/../../index'),
 	types = lithp.Types,
 	OpChain = types.OpChain,
 	Atom = types.Atom,
+	GetAtoms = types.GetAtoms,
 	FunctionCall = types.FunctionCall,
 	FunctionReentry = types.FunctionReentry,
 	FunctionDefinition = types.FunctionDefinition,
@@ -21,7 +22,7 @@ var lithp = require(__dirname + '/../../index'),
  *       contain a reference to the Lithp object. This would allow
  *       JavaScript callbacks to run Lithp functions as normal functions.
  *       This would allow for instance, calling string.replace(RegExp, function() {
- *		     // Create a new OpChain, set its local data (ie, function parameters)
+ *           // Create a new OpChain, set its local data (ie, function parameters)
  *           // and then run: return State.lithp.run(chain)
  *       });
  */
@@ -56,17 +57,17 @@ function error (message) { throw new Error(message); };
  * Implement all of the native types used by the interpreter so that a
  * parser written in Lithp can construct a parsing tree for the interpreter.
  */
-builtin("atom", ["Str"], Str => {
-	return new LiteralValue(Atom(Str));
-});
+builtin("atom", ["Str"], Str =>
+	new LiteralValue(Atom(Str));
+);
 
-builtin("tuple/*", [], function(List) {
-	return new LiteralValue(newClass(Tuple, List));
-});
+builtin("tuple/*", [], List =>
+	new LiteralValue(newClass(Tuple, List));
+);
 
-builtin("get-opchain-closure-current", [], State => {
-	return new LiteralValue(State.closure);
-});
+builtin("get-opchain-closure-current", [], State =>
+	new LiteralValue(State.closure);
+);
 
 builtin("opchain-closure", ['Owner', 'Parent'], (Owner, Parent) =>
 	new LiteralValue(new OpChainClosure(Owner, Parent))
@@ -117,7 +118,7 @@ builtin("opchain-call-immediate", ['Opchain'], (Opchain) =>
 );
 
 function alias (newname, oldname) {
-	return builtin(newname, [], function() { return builtins['literal-value'].apply(this, arguments); });
+	return builtin(newname, [], function() { return builtins[oldname].apply(this, arguments); });
 }
 
 builtin("literal-value", ["Value"], Value => new LiteralValue(Value));
@@ -147,13 +148,8 @@ builtin("split", ['String', 'SplitChars'], (Str, SplitChars) =>
 	new LiteralValue(Str.split(SplitChars))
 );
 
-builtin("head", ['List'], List =>
-	List.length > 0 ? new LiteralValue(List[0]) : error('Invalid argument: head on empty list')
-);
-
-builtin("tail", ['List'], List =>
-	List.length > 0 ? new LiteralValue(List.slice(1)) : error('Invalid argument: tail on empty list')
-);
+builtin("head", ['List'], List => new LiteralValue(List.length > 0 ? List[0] : []));
+builtin("tail", ['List'], List => new LiteralValue(List.length > 0 ? List.slice(1) : []));
 
 builtin("ht", ['List'], List =>
 	new LiteralValue(List.length == 0 ? [] : [List[0], List.slice(1)])
@@ -188,63 +184,37 @@ function flatten (List) {
 
 builtin("flatten/*", [], List => flatten(List));
 
-builtin("call/*", [], function(Args, State) {
+builtin("call/*", [], (Args, State) => {
 	// Create a new OpChain with the given function, set the closure
 	// variables, and return it with .call_immediate so that it takes
 	// effect straight away.
 	var Fn = Array.prototype.slice.call(Args, 0, 1);
 	var Params = Array.prototype.slice.call(Args, 1);
-	var arity = Fn.fn_name.slice(-1);
-	// Params includes State, so we must remove it
-	Params = Params.slice(0, Params.length - 1);
-	if(Fn.constructor === FnDefinitionNative) {
-		// Call native JavaScript function. Passes given arguments
-		// and also pass in the current chain as the last argument
-		// (just like this function gets.)
-		if(arity == '*') {
-			Params = [Params];
-		}
-		return Fn.fn_body.apply(this, Params.concat(State));
-	} else if(Fn.constructor === FnDefinition) {
-		var call_chain = new OpChain(State, Fn.fn_body);
-		if(arity == '*') {
-			Params = [Params];
-		}
-		// Set args in new function closure
-		Fn.fn_params.forEach((Name, Index) => {
-			//debug("Set '" + Name + "' to params[" + Index + "] (" + params[Index] + ")");
-			// This ensures that the closure will immediately find
-			// the named variable, instead of going up the stack
-			// to find it (which might hold multiple variables of
-			// the same name.)
-			call_chain.closure.set_immediate(Name, Params[Index]);
-		});
-		return call_chain.call_immediate();
-	}
-	throw new Error("call/*: Don't know what to do with:", Fn);
+	return this.invoke_functioncall(State, Fn, Params);
 });
 
 builtin("recurse/*", [], function(Arguments, State) {
 	// Call the current function again with the given arguments.
-	// We do this by calling call/* with the current State (last param.)
-	// TODO: incorrect
-	//       OpChain needs to have a reference to the FunctionDefinition that
-	//       called it, so that we can recursively call it.
-	//       Actually, can use current State and use .call to get a copy of
-	//       the current executing function.
-	var args = [State.call()];
-	args = args.concat.apply(args, Arguments);
-	args.push(State);
+	// We do this by calling call/* with the current State.
+	// TODO: should just reset the current opchain, and set parameters
+	//       to Arguments. Allows for infinite recursion.
+	var args = [State.call(), Arguments, State];
 	return builtins["call/*"].apply(this, args);
 });
 
-builtin('try', ['Call', 'Catch'], (Call, Catch, State) => {
+builtin('try', ['Call', 'Catch'], function(Call, Catch, State) {
 	try {
-		var value = State.lithp.run(Call.call_immediate());
+		// this refers to the running Lithp object
+		var value = this.run(Call.call_immediate());
 		return value;
 	} catch (e) {
-		return Catch.call_immediate({exception: e});
+		// Set Exception in the closure to the exception value e
+		return Catch.call_immediate({Exception: e});
 	}
+});
+
+builtin('throw', ['Message'], (Message) => {
+	throw new Error(Message);
 });
 
 // TODO: Test:
@@ -262,6 +232,45 @@ builtin('catch', ['OpChain'], (OpChain) => {
 	return OpChain.call_immediate();
 });
 
+/** Members should be a list of tuples:
+ *    {atom or string::Key, any::Value}
+ */
+builtin('dict/*', [], Members => {
+	var Dict = {};
+	Members.forEach(Member => {
+		if(Member.constructor !== Tuple) {
+			throw new Error('dict expects a list of tuples, got' + inspect(Member));
+		}
+		if(Member.length != 2) {
+			throw new Error('dict expects a tuple of {atom::Key, any::Value}');
+		}
+		var key = Member[0];
+		var value = Member[1];
+		if(key && key.type == 'Atom')
+			value = key.name;
+		if(typeof key != 'string')
+			throw new Error('dict expects an atom or string for tuple initial value, got: ' + inspect(value));
+		Dict[key] = value;
+	});
+	return Dict;
+});
+
+builtin('dict-get', ['Dict', 'Name'], (Dict, Name) => Dict[Name]);
+builtin('dict-set', ['Dict', 'Name', 'Value', (Dict, Name, Value) => {
+	Dict[Name] = Value;
+	return Dict;
+});
+builtin('dict-present', ['Dict', 'Name'], (Dict, Name) =>
+	(Name in Dict) ? Atom('true') : Atom('false')
+);
+builtin('dict-remove', ['Dict', 'Name'], (Dict, Name) => {
+	delete Dict[Name];
+	return Dict;
+});
+builtin('dict-keys', ['Dict'], Dict => Object.keys(Dict));
+
+builtin('atoms', [], () => GetAtoms.map(A => A.name));
+
 function lib_each (chain) {
 	/**
 	 (
@@ -276,6 +285,16 @@ function lib_each (chain) {
 				 ))
 			))
 		)
+	 )
+	 */
+}
+
+function lib_with (chain) {
+	/**
+	 (
+	 	(def with #Value,Callback :: (
+			(call Callback Value)
+		))
 	 )
 	 */
 }
