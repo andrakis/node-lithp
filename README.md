@@ -64,7 +64,7 @@ Lithp language itself.
 The runtime library is fairly small, aiming for a very basic but usable
 set of functions that can implement most algorithms.
 More advanced functionality is provided by additional libraries, such as
-with Interpreter V2 which has a much expanded runtime library building upon
+with Platform V0 which has a much expanded runtime library building upon
 the existing runtime library.
 
 Some functions are provided for readability, such as in an if construct:
