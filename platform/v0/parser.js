@@ -1,3 +1,11 @@
+/**
+ * Parser V0 for Lithp
+ *
+ * Work in progress.
+ *
+ * Main parser for the first version of Lithp.
+ */
+
 var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),

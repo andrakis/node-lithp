@@ -1,3 +1,10 @@
+/**
+ * Standard library for Parser V0.
+ *
+ * Contains native and hand-compiled functions.
+ * Incorporates additional library functions.
+ */
+
 var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),
@@ -15,18 +22,6 @@ var lithp = require(__dirname + '/../../index'),
 	LiteralValue = types.LiteralValue,
 	VariableReference = types.VariableReference,
 	Tuple = types.Tuple;
-
-/**
- * TODO:
- *       State passed into FunctionDefinitionNative callbacks should
- *       contain a reference to the Lithp object. This would allow
- *       JavaScript callbacks to run Lithp functions as normal functions.
- *       This would allow for instance, calling string.replace(RegExp, function() {
- *           // Create a new OpChain, set its local data (ie, function parameters)
- *           // and then run: return State.lithp.run(chain)
- *       });
- */
-
 
 var builtins = {};
 function builtin (name, params, body) {
