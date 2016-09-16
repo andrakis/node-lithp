@@ -29,9 +29,13 @@ var lithp = require(__dirname + '/../../index'),
 
 function closure_scope_test (lithp) {
 	/**
+	 % scope/1 function creates a new FunctionDefinition from the given
+	 % definition, and parents it to the current scope.
+	 % This allows a function to be returned that keeps reference to
+	 % the closure that contained the variable scope needed.
 	 (
 		(def add #A :: (
-			#B :: ((+ A B))
+			(scope #B :: ((+ A B)))
 		))
 		(var Add5 (add 5))
 		(var N 10)
@@ -43,27 +47,15 @@ function closure_scope_test (lithp) {
 	var add1_body = new OpChain(chain);
 	var add1_body_inner1 = new OpChain(add1_body);
 
-	var add1_body_inner1_body = new OpChain(add1_body_inner1, [
-		new FunctionCall("print/*", [new LiteralValue("Should call add now")]),
+	var add1_body_inner1_body = new OpChain(add1_body, [
 		new FunctionCall("+/2", [
 			new FunctionCall("get/1", [new VariableReference("A")]),
 			new FunctionCall("get/1", [new VariableReference("B")])
 		])
 	]);
 
-	add1_body_inner1.push(
-		//new LiteralValue(AnonymousFunction(add1_body, ['B'], add1_body_inner1_body))
-			new FunctionCall("call/*", [
-				AnonymousFunction(add1_body, ['B'], add1_body_inner1_body),
-				new FunctionCall("get/1", [new VariableReference("A")])
-			])
-	);
-
 	add1_body.push(
-		new FunctionCall("print/*", [new LiteralValue("add1_body")])
-	);
-	add1_body.push(
-		new LiteralValue(AnonymousFunction(add1_body, ['A'], add1_body_inner1))
+		new FunctionCall("scope/1", [new AnonymousFunction(add1_body_inner1, ['B'], add1_body_inner1_body)])
 	);
 
 	chain.push(
@@ -179,5 +171,6 @@ function simple_parser (lithp) {
 var lithp = new Lithp();
 (require(__dirname + '/../../lib/builtins')).setup(lithp);
 parser_lib.setup(lithp);
+//parser_lib.test(lithp);
 closure_scope_test(lithp);
 

@@ -1,5 +1,5 @@
 /**
- * Standard library for Parser V0.
+ * Standard library for Parser V1, Platform V0.
  *
  * Contains native and hand-compiled functions.
  * Incorporates additional library functions.
@@ -22,6 +22,7 @@ var lithp = require(__dirname + '/../../index'),
 	LiteralValue = types.LiteralValue,
 	VariableReference = types.VariableReference,
 	Tuple = types.Tuple;
+var lib_parser_switch = require('./lib-parser-switch');
 
 var builtins = {};
 function builtin (name, params, body) {
@@ -31,10 +32,15 @@ function builtin (name, params, body) {
 function builtin_def () {
 }
 
+exports.test = (lithp) => {
+	lib_parser_switch.test(lithp);
+};
+
 exports.setup = function(lithp) {
 	for(var k in builtins) {
 		lithp.builtin(k, builtins[k].params, builtins[k].body);
 	}
+	// TODO: import functions from lib_parser_switch
 };
 
 // Used to instantiate classes when the number of parameters it not
@@ -54,7 +60,14 @@ function error (message) { throw new Error(message); };
  */
 builtin("atom", ["Str"], Str => new LiteralValue(Atom(Str)));
 
-builtin("tuple/*", [], List => new LiteralValue(newClass(Tuple, List)));
+builtin("tuple/*", [], function (List) {
+	return new LiteralValue(newClass.apply(this, [Tuple].concat(List)));
+});
+
+// Perform an Object comparison
+builtin("equal", ['A', 'B'], (A, B) =>
+	Object.equals(A, B) ? Atom('true') : Atom('false')
+);
 
 builtin("get-opchain-closure-current", [], State => new LiteralValue(State.closure));
 
@@ -183,8 +196,18 @@ builtin("call/*", [], function(Args, State) {
 		throw new Error('call/*: Unable to get function from args');
 	Fn = Fn[0];
 	var val = this.invoke_functioncall(State, Fn, Params);
-	console.log("call/* result:", val);
+	//console.log("call/* result:", val);
 	return val;
+});
+
+builtin("scope", ['FnDef'], (FnDef, State) => {
+	// TODO: This is somewhat ugly and is implemented in the interpreter.
+	//       It would be nice if this did not require changes to the
+	//       interpreter.
+	var newFnDef = FnDef.clone();
+	newFnDef.scoped = State;
+	//console.log("Scope, new scope is:", State.closure.getDefined(3));
+	return newFnDef;
 });
 
 builtin("recurse/*", [], function(Arguments, State) {
@@ -264,6 +287,14 @@ builtin('dict-remove', ['Dict', 'Name'], (Dict, Name) => {
 builtin('dict-keys', ['Dict'], Dict => Object.keys(Dict));
 
 builtin('atoms', [], () => GetAtoms.map(A => A.name));
+
+function atomBool (A) {
+	return A == Atom('true') ? true : false;
+}
+
+builtin('inspect/1', ['Object'], O => inspect(O));
+builtin('inspect/2', ['Object', 'Deep'], (O, Deep) => inspect(O, {depth: atomBool(Deep) ? null : undefined}));
+builtin('inspect/3', ['Object', 'Deep', 'Color'], (O, Deep, Color) => inspect(O, {depth: atomBool(Deep) ? null : undefined, colors: atomBool(Color)}));
 
 function lib_each (chain) {
 	/**

@@ -44,11 +44,11 @@ function lib_case (lithp) {
 			%
 			% TODO: Verify the above logic is correct. Since each call is already in
 			%       a new OpChain, it should retain access to the variables.
-			#Value :: (
+			(scope #Value :: (
 				(if (== Eq Value) ((tuple ok Result))
 					(else (tuple false))
 				)
-			)
+			))
 		))
 	 )
 	*/
@@ -59,6 +59,59 @@ function lib_default (lithp) {
 		% For use with switch/*, a default value if no matching cases are found.
 		(def default #Result :: (tuple default Result))
 	**/
+	var default1 = new OpChain();
+
+	var default1_body = new OpChain(default1,
+		new FunctionCall("tuple/*", [
+			Atom("default"),
+			new FunctionCall("get/1", [new VariableReference("Result")])
+		])
+	);
+	
+	/**
+	 * (print (default "Foo"))
+	 */
+	var chain = new OpChain();
+	chain.push(
+		new FunctionCall("def/2", [
+			Atom("default"),
+			AnonymousFunction(default1, ['Result'], default1_body)
+		])
+	);
+	chain.push(
+		new FunctionCall("print/*", [
+			new FunctionCall("default/1", [new LiteralValue("Foo")])
+		])
+	);
+	/**
+	 * (print (inspect (default "Foo") true true))
+	 */
+	chain.push(
+		new FunctionCall("print/*", [
+			new FunctionCall("inspect/3", [
+				new FunctionCall("default/1", [new LiteralValue("Foo")]),
+				Atom('true'),
+				Atom('true')
+			])
+		])
+	);
+	/**
+	 * (assert (== (default "Foo") (tuple default "Foo")))
+	 */
+	chain.push(
+		new FunctionCall("assert/1", [
+			new FunctionCall("equal/2", [
+				new FunctionCall("default/1", [new LiteralValue("Foo")]),
+				new FunctionCall("tuple/*", [
+					Atom("default"),
+					new LiteralValue("Foo")
+				])
+			])
+		])
+	);
+
+	chain.importClosure(lithp.functions);
+	lithp.run(chain);
 }
 
 function lib_switch_inner (chain) {
@@ -130,3 +183,14 @@ function lib_switch (lithp) {
 		)
 	*/
 }
+
+exports.test = (lithp) => {
+	console.log("lib-parser-switch.js");
+	lib_default(lithp);
+};
+
+exports.functions = {
+	"case": lib_case,
+	"default": lib_default,
+	"switch": lib_switch
+};
