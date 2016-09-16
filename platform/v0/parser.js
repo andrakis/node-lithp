@@ -286,12 +286,12 @@ function jsbridge_test (lithp) {
 		(var Fs (require "fs"))
 		(var FsReadFile (dict-get Fs "readFile"))
 		(print "readFile:" (inspect FsReadFile))
-		% You can call FsReadFile using call/* (a parser-specific builtin.)
 		(var Our_callback (js-bridge #Err,Data :: (
-			(print "Err:  " (inspect Err))
-			(print "Data: " (inspect Data))
+			(print "Err:  " Err)
+			(print "Data: " Data)
 		)))
-		(call FsReadFile "index.js" (js-bridge Our_callback))
+		% You can call FsReadFile using call/* (a parser-specific builtin.)
+		(call FsReadFile "index.js" Our_callback)
 	 )
 	 */
 	var chain = new OpChain();

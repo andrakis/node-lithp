@@ -142,3 +142,24 @@ given number, and call it.
 	  (print "factorial of " Test ": " (fac Test))
 	 )
 
+Read a file
+-----------
+
+Note: this example is implemented in `platform/v0/parser.js`, and relies on
+functions provided by Platform 0.
+
+Additionally, it is using the Node.js API. It will be replaced with native
+functions in Platform 1.
+
+	 (
+		(var Fs (require "fs"))
+		(var FsReadFile (dict-get Fs "readFile"))
+		(print "readFile:" (inspect FsReadFile))
+		(var Our_callback (js-bridge #Err,Data :: (
+			(print "Err:  " Err)
+			(print "Data: " Data)
+		)))
+		% You can call FsReadFile using call (a parser-specific builtin.)
+		(call FsReadFile "index.js" Our_callback)
+	 )
+

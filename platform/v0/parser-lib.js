@@ -204,6 +204,7 @@ builtin("call/*", [], function(Args, State) {
 	var val;
 	if(typeof Fn == 'function') {
 		// TODO: What should context be?
+		// TODO: Could also transform this into a FunctionDefinitionNative
 		val = Fn.apply({}, Params);
 	} else {
 		val = this.invoke_functioncall(State, Fn, Params);
