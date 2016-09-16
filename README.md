@@ -3,9 +3,9 @@ Lithp
 
 A small Lisp-like programming language, with a very small interpreter.
 
-The main interpreter is just over 200 lines of sparse code (not counting
+The main interpreter is just over 250 lines of sparse code (not counting
 structures and runtime library.) This size would be much lower without the
-debug statements and detailed comments (around 130 lines.)
+debug statements and detailed comments (around 150 lines.)
 
 No parser yet exists, this is being worked on. The sample code
 constructs the correct parsing tree.

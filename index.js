@@ -4,5 +4,8 @@
  * Provides the interface to Lithp to other modules.
  */
 
-exports.Lithp = require('./lib/lithp').Lithp;
+var lithp = require('./lib/lithp');
+exports.Lithp = lithp.Lithp;
+exports.debug = lithp.debug;
+exports.get_debug_flag = lithp.get_debug_flag;
 exports.Types = require('./lib/types');
