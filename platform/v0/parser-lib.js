@@ -318,17 +318,16 @@ builtin('js-apply/3', ['Context', 'Function', 'ArgList'], (Ctx, F, AL) => {
 	return F.apply(Ctx, AL);
 });
 builtin('js-typeof/1', ['Object'], O => typeof(O));
-// Bridge to a JavaScript function. This functions a native JavaScript function
+// Bridge to a JavaScript function. This returns a native JavaScript function
 // that when called, invokes the given FunctionDefinition with the arguments
 // given to the function. This can be used in fs.readFile for example.
 builtin('js-bridge/1', ['FunctionDefinition'], function(FnDef, State) {
-	var self = this;
-	// TODO: Are there any scoping issues here? (JS)
-	//       Shouldn't be, as everything passed in is using arguments.
-	return function(err, data) {
-		var Args = Array.prototype.slice.call(arguments);
-		return self.invoke_functioncall(State, FnDef, Args);
-	};
+	return (self =>
+		function() {
+			var Args = Array.prototype.slice.call(arguments);
+			return self.invoke_functioncall(State, FnDef, Args);
+		}
+	)(this);
 });
 
 function lib_each (chain) {
