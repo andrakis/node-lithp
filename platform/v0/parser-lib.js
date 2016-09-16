@@ -24,6 +24,9 @@ var lithp = require(__dirname + '/../../index'),
 	Tuple = types.Tuple;
 var lib_parser_switch = require('./lib-parser-switch');
 
+var atomTrue = Atom('true'),
+    atomFalse = Atom('false');
+
 var builtins = {};
 function builtin (name, params, body) {
 	builtins[name] = {params: params, body: body};
@@ -66,7 +69,7 @@ builtin("tuple/*", [], function (List) {
 
 // Perform an Object comparison
 builtin("equal", ['A', 'B'], (A, B) =>
-	Object.equals(A, B) ? Atom('true') : Atom('false')
+	Object.equals(A, B) ? atomTrue : atomFalse
 );
 
 builtin("get-opchain-closure-current", [], State => new LiteralValue(State.closure));
@@ -150,7 +153,7 @@ builtin("split", ['String', 'SplitChars'], (Str, SplitChars) =>
 	new LiteralValue(Str.split(SplitChars))
 );
 
-builtin("head", ['List'], List => new LiteralValue(List.length > 0 ? List[0] : []));
+builtin("head", ['List'], List => new LiteralValue(List.length > 0 ? List[0][0] : []));
 builtin("tail", ['List'], List => new LiteralValue(List.length > 0 ? List.slice(1) : []));
 
 builtin("ht", ['List'], List =>
@@ -186,6 +189,8 @@ function flatten (List) {
 
 builtin("flatten/*", [], List => flatten(List));
 
+// Call a function. This can be a JavaScript function, or one of the standard
+// Lithp FunctionDefinition or FunctionDefinitionNative classes.
 builtin("call/*", [], function(Args, State) {
 	// Create a new OpChain with the given function, set the closure
 	// variables, and return it with .call_immediate so that it takes
@@ -195,7 +200,14 @@ builtin("call/*", [], function(Args, State) {
 	if(Fn.length == 0)
 		throw new Error('call/*: Unable to get function from args');
 	Fn = Fn[0];
-	var val = this.invoke_functioncall(State, Fn, Params);
+
+	var val;
+	if(typeof Fn == 'function') {
+		// TODO: What should context be?
+		val = Fn.apply({}, Params);
+	} else {
+		val = this.invoke_functioncall(State, Fn, Params);
+	}
 	//console.log("call/* result:", val);
 	return val;
 });
@@ -272,13 +284,14 @@ builtin('dict/*', [], Members => {
 	return Dict;
 });
 
+// These functions can be used on JavaScript objects returned from require/1.
 builtin('dict-get', ['Dict', 'Name'], (Dict, Name) => Dict[Name]);
 builtin('dict-set', ['Dict', 'Name', 'Value'], (Dict, Name, Value) => {
 	Dict[Name] = Value;
 	return Dict;
 });
 builtin('dict-present', ['Dict', 'Name'], (Dict, Name) =>
-	(Name in Dict) ? Atom('true') : Atom('false')
+	(Name in Dict) ? atomTrue : atomFalse
 );
 builtin('dict-remove', ['Dict', 'Name'], (Dict, Name) => {
 	delete Dict[Name];
@@ -289,12 +302,33 @@ builtin('dict-keys', ['Dict'], Dict => Object.keys(Dict));
 builtin('atoms', [], () => GetAtoms.map(A => A.name));
 
 function atomBool (A) {
-	return A == Atom('true') ? true : false;
+	return A == atomTrue ? true : false;
 }
 
 builtin('inspect/1', ['Object'], O => inspect(O));
 builtin('inspect/2', ['Object', 'Deep'], (O, Deep) => inspect(O, {depth: atomBool(Deep) ? null : undefined}));
 builtin('inspect/3', ['Object', 'Deep', 'Color'], (O, Deep, Color) => inspect(O, {depth: atomBool(Deep) ? null : undefined, colors: atomBool(Color)}));
+
+// These are specific to JavaScript. This might matter in the future if the
+// interpreter is ever ported, so they are prefixed.
+builtin('require', ['Name'], Name => require(Name));
+builtin('{}', [], () => {});
+builtin('js-apply/3', ['Context', 'Function', 'ArgList'], (Ctx, F, AL) => {
+	return F.apply(Ctx, AL);
+});
+builtin('js-typeof/1', ['Object'], O => typeof(O));
+// Bridge to a JavaScript function. This functions a native JavaScript function
+// that when called, invokes the given FunctionDefinition with the arguments
+// given to the function. This can be used in fs.readFile for example.
+builtin('js-bridge/1', ['FunctionDefinition'], function(FnDef, State) {
+	var self = this;
+	// TODO: Are there any scoping issues here? (JS)
+	//       Shouldn't be, as everything passed in is using arguments.
+	return function(err, data) {
+		var Args = Array.prototype.slice.call(arguments);
+		return self.invoke_functioncall(State, FnDef, Args);
+	};
+});
 
 function lib_each (chain) {
 	/**

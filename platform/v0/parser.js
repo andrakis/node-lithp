@@ -227,9 +227,139 @@ function simple_parser (lithp) {
 		)`;
 }
 
+function require_test (lithp) {
+	/**
+	 (
+		(var Fs (require "fs"))
+		(var FsReadFileSync (dict-get Fs "readFileSync"))
+		(print "readFileSync:" (inspect FsReadFileSync))
+		% You can call FsReadFileSync using call/* (a parser-specific builtin.)
+		(print "Read index.js:" (call FsReadFileSync "index.js"))
+	 )
+	 */
+	var chain = new OpChain();
+
+	chain.push(
+		new FunctionCall("var/2", [
+			new VariableReference("Fs"),
+			new FunctionCall("require/1", [new LiteralValue("fs")])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("var/2", [
+			new VariableReference("FsReadFileSync"),
+			new FunctionCall("dict-get/2", [
+				new FunctionCall("get/1", [new VariableReference("Fs")]),
+				new LiteralValue("readFileSync")
+			])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("print/*", [
+			new LiteralValue("readFileSync:"),
+			new FunctionCall("inspect/1", [
+				new FunctionCall("get/1", [new VariableReference("FsReadFileSync")])
+			])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("print/*", [
+			new LiteralValue("Read index.js:"),
+			new FunctionCall("call/2", [
+				new FunctionCall("get/1", [new VariableReference("FsReadFileSync")]),
+				new LiteralValue("index.js")
+			])
+		])
+	);
+
+	chain.importClosure(lithp.functions);
+	//console.log(inspect(chain, {depth: null, colors: true}));
+	lithp.run(chain);
+}
+
+function jsbridge_test (lithp) {
+	/**
+	 (
+		(var Fs (require "fs"))
+		(var FsReadFile (dict-get Fs "readFile"))
+		(print "readFile:" (inspect FsReadFile))
+		% You can call FsReadFile using call/* (a parser-specific builtin.)
+		(var Our_callback (js-bridge #Err,Data :: (
+			(print "Err:  " (inspect Err))
+			(print "Data: " (inspect Data))
+		)))
+		(call FsReadFile "index.js" (js-bridge Our_callback))
+	 )
+	 */
+	var chain = new OpChain();
+
+	chain.push(
+		new FunctionCall("var/2", [
+			new VariableReference("Fs"),
+			new FunctionCall("require/1", [new LiteralValue("fs")])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("var/2", [
+			new VariableReference("FsReadFile"),
+			new FunctionCall("dict-get/2", [
+				new FunctionCall("get/1", [new VariableReference("Fs")]),
+				new LiteralValue("readFile")
+			])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("print/*", [
+			new LiteralValue("readFile:"),
+			new FunctionCall("inspect/1", [
+				new FunctionCall("get/1", [new VariableReference("FsReadFile")])
+			])
+		])
+	);
+
+	var our_callback1_body = new OpChain(chain, [
+		new FunctionCall("print/*", [
+			new LiteralValue("Err:   "),
+			new FunctionCall("get/1", [new VariableReference("Err")])
+		]),
+		new FunctionCall("print/*", [
+			new LiteralValue("Data:  "),
+			new FunctionCall("get/1", [new VariableReference("Data")])
+		])
+	]);
+
+	chain.push(
+		new FunctionCall("var/2", [
+			new VariableReference("Our_callback"),
+			new FunctionCall("js-bridge/1", [
+				AnonymousFunction(chain, ['Err', 'Data'], our_callback1_body)
+			])
+		])
+	);
+
+	chain.push(
+		new FunctionCall("call/2", [
+			new FunctionCall("get/1", [new VariableReference("FsReadFile")]),
+			new LiteralValue("index.js"),
+			new FunctionCall("get/1", [new VariableReference("Our_callback")])
+		])
+	);
+
+	chain.importClosure(lithp.functions);
+	//console.log(inspect(chain, {depth: null, colors: true}));
+	lithp.run(chain);
+}
+
 var lithp = new Lithp();
 (require(__dirname + '/../../lib/builtins')).setup(lithp);
 parser_lib.setup(lithp);
 //parser_lib.test(lithp);
-closure_scope_test(lithp);
+//closure_scope_test(lithp);
+//require_test(lithp);
+jsbridge_test(lithp);
 
