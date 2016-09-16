@@ -1,4 +1,6 @@
 /**
+ * Parser V1, Platform V0, switch() implementation.
+ *
  * Provides:
  *  - switch/*
  *  - case/2

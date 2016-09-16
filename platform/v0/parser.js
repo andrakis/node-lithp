@@ -1,9 +1,10 @@
 /**
- * Parser V0 for Lithp
+ * Parser V1, Platform V0, for Lithp
  *
  * Work in progress.
  *
- * Main parser for the first version of Lithp.
+ * Main parser for the first version of Lithp. A simple parser that can be used
+ * to create a better parser later (Platform V1).
  */
 
 var util = require('util'),
@@ -38,8 +39,13 @@ function closure_scope_test (lithp) {
 			(scope #B :: ((+ A B)))
 		))
 		(var Add5 (add 5))
+		(var Add10 (add 10))
 		(var N 10)
-		(print "Add5 with " N ": " (call Add5 N))
+		%if debug_flag
+			(print "Add5 with " N ": " (call Add5 N))
+			(print "Add10 with " N ": " (call Add10 N))
+		%endif
+		(assert (== 15 (Add5 10)))
 	 )
 	 */
 	var chain = new OpChain();
@@ -48,20 +54,24 @@ function closure_scope_test (lithp) {
 	var add1_body_inner1 = new OpChain(add1_body);
 
 	var add1_body_inner1_body = new OpChain(add1_body, [
+		// (+ A B)
 		new FunctionCall("+/2", [
 			new FunctionCall("get/1", [new VariableReference("A")]),
 			new FunctionCall("get/1", [new VariableReference("B")])
 		])
 	]);
 
+	// (scope #B :: add1_body_inner1_body)
 	add1_body.push(
 		new FunctionCall("scope/1", [new AnonymousFunction(add1_body_inner1, ['B'], add1_body_inner1_body)])
 	);
 
+	// (def add #A :: add1_body)
 	chain.push(
 		new FunctionCall('def/2', [new Atom("add"), AnonymousFunction(chain, ['A'], add1_body)])
 	);
 
+	// (var Add5 (add 5))
 	chain.push(
 		new FunctionCall('var/2', [
 			new VariableReference("Add5"),
@@ -69,6 +79,15 @@ function closure_scope_test (lithp) {
 		])
 	);
 
+	// (var Add10 (add 10))
+	chain.push(
+		new FunctionCall('var/2', [
+			new VariableReference("Add10"),
+			new FunctionCall("add/1", [new LiteralValue(10)])
+		])
+	);
+
+	// (var N 10)
 	chain.push(
 		new FunctionCall('var/2', [
 			new VariableReference("N"),
@@ -76,19 +95,59 @@ function closure_scope_test (lithp) {
 		])
 	);
 
-	// (print "Add5 with " N ": " (call Add5 N))
+	if(lithp.get_debug_flag()) {
+		// (print "Scope test: Add5 with" N ":" (call Add5 N))
+		chain.push(
+			new FunctionCall('print/*', [
+				new LiteralValue("Scope test: Add5 with"),
+				new FunctionCall("get/1", [new VariableReference("N")]),
+				new LiteralValue(":"),
+				new FunctionCall("call/2", [
+					new FunctionCall("get/1", [new VariableReference("Add5")]),
+					new FunctionCall("get/1", [new VariableReference("N")])
+				])
+			])
+		);
+
+		// (print "Scope test: Add10 with" N ":" (call Add10 N))
+		chain.push(
+			new FunctionCall('print/*', [
+				new LiteralValue("Scope test: Add10 with"),
+				new FunctionCall("get/1", [new VariableReference("N")]),
+				new LiteralValue(":"),
+				new FunctionCall("call/2", [
+					new FunctionCall("get/1", [new VariableReference("Add10")]),
+					new FunctionCall("get/1", [new VariableReference("N")])
+				])
+			])
+		);
+	}
+
+	// (assert (== 15 (Add5 10)))
 	chain.push(
-		new FunctionCall('print/*', [
-			new LiteralValue("Add5 with "),
-			new FunctionCall("get/1", [new VariableReference("N")]),
-			new LiteralValue(": "),
-			new FunctionCall("call/2", [
-				new FunctionCall("get/1", [new VariableReference("Add5")]),
-				new FunctionCall("get/1", [new VariableReference("N")])
+		new FunctionCall('assert/1', [
+			new FunctionCall('==/2', [
+				new LiteralValue(15),
+				new FunctionCall('call/2', [
+					new FunctionCall('get/1', [new VariableReference('Add5')]),
+					new LiteralValue(10)
+				])
 			])
 		])
 	);
 
+	// (assert (== 23 (Add10 13)))
+	chain.push(
+		new FunctionCall('assert/1', [
+			new FunctionCall('==/2', [
+				new LiteralValue(23),
+				new FunctionCall('call/2', [
+					new FunctionCall('get/1', [new VariableReference('Add10')]),
+					new LiteralValue(13)
+				])
+			])
+		])
+	);
 	chain.importClosure(lithp.functions);
 	//console.log(inspect(chain, {depth: null, colors: true}));
 	lithp.run(chain);
