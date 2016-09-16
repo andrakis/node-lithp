@@ -25,7 +25,82 @@ var lithp = require(__dirname + '/../../index'),
 	parser_lib = require('./parser-lib');
 
 // First, we need to test implementation of some special constructs
-// such as call, recurse, map, and loop, and switch.
+// such as closure scope, call, recurse, map, and loop, and switch.
+
+function closure_scope_test (lithp) {
+	/**
+	 (
+		(def add #A :: (
+			#B :: ((+ A B))
+		))
+		(var Add5 (add 5))
+		(var N 10)
+		(print "Add5 with " N ": " (call Add5 N))
+	 )
+	 */
+	var chain = new OpChain();
+	
+	var add1_body = new OpChain(chain);
+	var add1_body_inner1 = new OpChain(add1_body);
+
+	var add1_body_inner1_body = new OpChain(add1_body_inner1, [
+		new FunctionCall("print/*", [new LiteralValue("Should call add now")]),
+		new FunctionCall("+/2", [
+			new FunctionCall("get/1", [new VariableReference("A")]),
+			new FunctionCall("get/1", [new VariableReference("B")])
+		])
+	]);
+
+	add1_body_inner1.push(
+		//new LiteralValue(AnonymousFunction(add1_body, ['B'], add1_body_inner1_body))
+			new FunctionCall("call/*", [
+				AnonymousFunction(add1_body, ['B'], add1_body_inner1_body),
+				new FunctionCall("get/1", [new VariableReference("A")])
+			])
+	);
+
+	add1_body.push(
+		new FunctionCall("print/*", [new LiteralValue("add1_body")])
+	);
+	add1_body.push(
+		new LiteralValue(AnonymousFunction(add1_body, ['A'], add1_body_inner1))
+	);
+
+	chain.push(
+		new FunctionCall('def/2', [new Atom("add"), AnonymousFunction(chain, ['A'], add1_body)])
+	);
+
+	chain.push(
+		new FunctionCall('var/2', [
+			new VariableReference("Add5"),
+			new FunctionCall("add/1", [new LiteralValue(5)])
+		])
+	);
+
+	chain.push(
+		new FunctionCall('var/2', [
+			new VariableReference("N"),
+			new LiteralValue(10)
+		])
+	);
+
+	// (print "Add5 with " N ": " (call Add5 N))
+	chain.push(
+		new FunctionCall('print/*', [
+			new LiteralValue("Add5 with "),
+			new FunctionCall("get/1", [new VariableReference("N")]),
+			new LiteralValue(": "),
+			new FunctionCall("call/2", [
+				new FunctionCall("get/1", [new VariableReference("Add5")]),
+				new FunctionCall("get/1", [new VariableReference("N")])
+			])
+		])
+	);
+
+	chain.importClosure(lithp.functions);
+	//console.log(inspect(chain, {depth: null, colors: true}));
+	lithp.run(chain);
+}
 
 function call_test (lithp) {
 	/**
@@ -100,3 +175,9 @@ function simple_parser (lithp) {
 			(print "Test: " Test)
 		)`;
 }
+
+var lithp = new Lithp();
+(require(__dirname + '/../../lib/builtins')).setup(lithp);
+parser_lib.setup(lithp);
+closure_scope_test(lithp);
+

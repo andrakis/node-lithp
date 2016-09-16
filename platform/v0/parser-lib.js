@@ -52,17 +52,11 @@ function error (message) { throw new Error(message); };
  * Implement all of the native types used by the interpreter so that a
  * parser written in Lithp can construct a parsing tree for the interpreter.
  */
-builtin("atom", ["Str"], Str =>
-	new LiteralValue(Atom(Str));
-);
+builtin("atom", ["Str"], Str => new LiteralValue(Atom(Str)));
 
-builtin("tuple/*", [], List =>
-	new LiteralValue(newClass(Tuple, List));
-);
+builtin("tuple/*", [], List => new LiteralValue(newClass(Tuple, List)));
 
-builtin("get-opchain-closure-current", [], State =>
-	new LiteralValue(State.closure);
-);
+builtin("get-opchain-closure-current", [], State => new LiteralValue(State.closure));
 
 builtin("opchain-closure", ['Owner', 'Parent'], (Owner, Parent) =>
 	new LiteralValue(new OpChainClosure(Owner, Parent))
@@ -179,13 +173,18 @@ function flatten (List) {
 
 builtin("flatten/*", [], List => flatten(List));
 
-builtin("call/*", [], (Args, State) => {
+builtin("call/*", [], function(Args, State) {
 	// Create a new OpChain with the given function, set the closure
 	// variables, and return it with .call_immediate so that it takes
 	// effect straight away.
-	var Fn = Array.prototype.slice.call(Args, 0, 1);
-	var Params = Array.prototype.slice.call(Args, 1);
-	return this.invoke_functioncall(State, Fn, Params);
+	var Fn = Args.slice(0, 1);
+	var Params = Args.slice(1);
+	if(Fn.length == 0)
+		throw new Error('call/*: Unable to get function from args');
+	Fn = Fn[0];
+	var val = this.invoke_functioncall(State, Fn, Params);
+	console.log("call/* result:", val);
+	return val;
 });
 
 builtin("recurse/*", [], function(Arguments, State) {
@@ -251,7 +250,7 @@ builtin('dict/*', [], Members => {
 });
 
 builtin('dict-get', ['Dict', 'Name'], (Dict, Name) => Dict[Name]);
-builtin('dict-set', ['Dict', 'Name', 'Value', (Dict, Name, Value) => {
+builtin('dict-set', ['Dict', 'Name', 'Value'], (Dict, Name, Value) => {
 	Dict[Name] = Value;
 	return Dict;
 });
