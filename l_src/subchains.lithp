@@ -1,0 +1,12 @@
+(
+	(var A 5)
+	(var B 6)
+	(print "A+B:" (+ A B))
+	(if (== A B) (
+		(print ":)")
+		(print "The same!")
+	) (else (
+		(print ":(")
+		(print "Different")
+	)))
+)

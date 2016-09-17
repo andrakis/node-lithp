@@ -246,7 +246,7 @@ function BootstrapParser (code) {
 		if(ch === undefined)
 			return ch;
 		var chCode = ch.charCodeAt(0);
-		while(chCode == 10 || chCode == 9) {
+		while(chCode == 10 || chCode == 9 || chCode == 13) {
 			ch = it.next();
 			if(ch === undefined)
 				return ch;
@@ -262,6 +262,9 @@ function BootstrapParser (code) {
 				chCode = ch.charCodeAt(0);
 			}
 			ch = it.next();
+			chCode = ch.charCodeAt(0);
+			if(chCode == 13)
+				ch = it.next();
 		}
 		return ch;
 	}
@@ -409,17 +412,15 @@ function BootstrapParser (code) {
 
 exports.BootstrapParser = BootstrapParser;
 
-// Test
 var code = `(
-    % Print a simple message
-    % (print  "Hello, world!")
-    (print "1+1:" (+ 1 1) " Wow!")
-    (print "Also a test:" (* 5 10))
-	(print "One last test:" (/ 10 2))
-	(var A 5)
-	(var B 6)
-	(print "A+B:" (+ A B))
+	(print "Hello, world!")
 )`;
+
+if(process.argv.length == 3) {
+	var fs = require('fs');
+	code = fs.readFileSync(process.argv[2]).toString();
+	console.log("Code:", code);
+}
 
 var result = timeCall("Parse code", () => BootstrapParser(code));
 var parsed = result[0];

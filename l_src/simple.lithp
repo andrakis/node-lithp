@@ -1,0 +1,10 @@
+(
+    % Print a simple message
+    % (print  "Hello, world!")
+    (print "1+1:" (+ 1 1) " Wow!")
+    (print "Also a test:" (* 5 10))
+	(print "One last test:" (/ 10 2))
+	(var A 5)
+	(var B 6)
+	(print "A+B:" (+ A B))
+)
