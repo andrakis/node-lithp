@@ -7,8 +7,10 @@ The main interpreter is just over 250 lines of sparse code (not counting
 structures and runtime library.) This size would be much lower without the
 debug statements and detailed comments (around 150 lines.)
 
-No parser yet exists, this is being worked on. The sample code
-constructs the correct parsing tree.
+A simple parser currently exists, and is a work in progress. See the file
+`platform/v0/parser.js` for the current version. It does not yet support
+some critical constructs such as anonymous functions, but does handle
+simple function calls (including nested function calls.)
 
 Design
 ======
