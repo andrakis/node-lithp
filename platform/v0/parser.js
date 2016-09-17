@@ -8,7 +8,7 @@ var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),
 	Lithp = lithp.Lithp,
-	debug = Lithp.debug,
+	debug = lithp.debug,
 	types = lithp.Types,
 	OpChain = types.OpChain,
 	Atom = types.Atom,
@@ -160,7 +160,7 @@ ParserState.prototype.classify = function(ch) {
 			else if(ch.length > 1 && ch.match(/^'.*'$/))
 				val = EX_STRING_SINGLE;
 			else {
-				//console.log("WARNING: assuming atom for: " + ch);
+				//debug("WARNING: assuming atom for: " + ch);
 				val = EX_ATOM;
 			}
 	}
@@ -179,7 +179,7 @@ ParserState.prototype.do_function_call = function() {
 	var params = [];
 	for(var i = 1; i < this.parts.length; i++) {
 		var part = this.parts[i];
-		console.log("Part: " + part + " type: " + typeof part);
+		debug("Part: " + part + " type: " + typeof part);
 		// Already processed?
 		if(typeof part != 'string') {
 			params.push(part);
@@ -189,7 +189,7 @@ ParserState.prototype.do_function_call = function() {
 		if(part == '')
 			continue;
 		var clsThis = this.classify(part);
-		console.log("Type of argument " + i + ": " + GET_EX(clsThis));
+		debug("Type of argument " + i + ": " + GET_EX(clsThis));
 		if(clsThis & EX_COMPILED)
 			params.push(EX_COMPILED);
 		else if(clsThis & EX_NUMBER)
@@ -218,14 +218,14 @@ ParserState.prototype.do_function_call = function() {
 			throw new Error("Don't know what to do with: " + GET_EX(clsThis));
 		}
 	}
-	console.log("(" + fnName + " ", params, ")");
+	debug("(" + fnName + " ", params, ")");
 	this.current_set('');
 	this.parts = this.parts_pending.pop() || [];
 	this.parts_it = this.parts.iterator();
 	this.parts_it.push(new FunctionCall(fnName + "/" + params.length, params));
-	console.log("Parts now: ", this.parts);
+	debug("Parts now: ", this.parts);
 	if(this.parts.length == 1) {
-		console.log("Now pushing completed function call");
+		debug("Now pushing completed function call");
 		// We can now push this to the opchain
 		this.opchain_current().push(this.parts[0]);
 		this.parts = [];
@@ -254,7 +254,7 @@ function BootstrapParser (code) {
 		}
 		if(ch == '%' && !(expect & EX_STRING_SINGLE || expect & EX_STRING_DOUBLE)) {
 			// Comment and not in speech, ignore this line
-			console.log("COMMENT");
+			debug("COMMENT");
 			while(chCode != 10) {
 				ch = it.next();
 				if(ch === undefined)
@@ -267,12 +267,12 @@ function BootstrapParser (code) {
 	}
 
 	while( (ch = moveNext()) != undefined) {
-		console.log("Parse character: " + ch + " " + ch.charCodeAt(0).toString(10));
+		debug("Parse character: " + ch + " " + ch.charCodeAt(0).toString(10));
 
 		// Classify the current character
 		var cls = state.classify(ch);
-		console.log("      Type     : " + GET_EX(cls));
-		console.log("  expect_current: 0x" + state.expect_current().toString(16) + " (" + GET_EX(state.expect_current()) + ")");
+		debug("      Type     : " + GET_EX(cls));
+		debug("  expect_current: 0x" + state.expect_current().toString(16) + " (" + GET_EX(state.expect_current()) + ")");
 
 		// Skip spaces we are not expecting. This really only affects extra
 		// space characters within a line.
@@ -280,7 +280,7 @@ function BootstrapParser (code) {
 		if(cls & EX_PARAM_SEPARATOR &&
 			!(expect & EX_PARAM_SEPARATOR) &&
 			!(expect & EX_STRING_CHARACTER)) {
-			console.log("Space when not expecting, ignoring");
+			debug("Space when not expecting, ignoring");
 			continue;
 		}
 
@@ -292,80 +292,80 @@ function BootstrapParser (code) {
 		// parser state. This is the main parsing section.
 		if(cls & EX_OPCHAIN && expect & EX_OPCHAIN) {
 			// Start a new opchain
-			console.log("Start OPCHAIN");
+			debug("Start OPCHAIN");
 			state.current_push();
 			state.expect_set(EX_FUNCTIONCALL | EX_ATOM | EX_VARIABLE | EX_NUMBER);
 		} else if(cls & EX_FUNCTIONCALL && expect & EX_FUNCTIONCALL) {
 			// Start a function call (pushes state)
-			console.log("Start FUNCTIONCALL, current parts: " + state.parts);
+			debug("Start FUNCTIONCALL, current parts: " + state.parts);
 			state.current_push();
 			state.parts_pending_it.push(state.parts);
 			state.parts = [];
 			state.parts_it = state.parts.iterator();
-			console.log("Pending parts: " + state.parts_pending);
+			debug("Pending parts: " + state.parts_pending);
 			state.expect_set(EX_ATOM | EX_PARAM_SEPARATOR | EX_CALL_END);
 			state.current_set('');
 		} else if(cls & EX_ATOM && !(expect & EX_STRING_CHARACTER)) {
 			// Build an atom
-			console.log("Current: " + state.current_current() + " + " + ch);
+			debug("Current: " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 			state.expect_set(EX_ATOM | EX_PARAM_SEPARATOR | EX_CALL_END);
 		} else if(cls & EX_PARAM_SEPARATOR && !(expect & EX_STRING_CHARACTER)) {
 			// A separater has been found. Save current token and push it
 			// onto the parts list. When we find the end of the function call,
 			// we'll create the actual instruction.
-			console.log("SEPERATOR");
-			console.log("Current: " + state.current_current());
+			debug("SEPERATOR");
+			debug("Current: " + state.current_current());
 			state.parts_push(state.current_current());
 			state.parts_it.prev();
 			state.current_set('');
-			console.log("Parts so far: ", state.parts_get_current());
+			debug("Parts so far: ", state.parts_get_current());
 			state.expect_set(EX_ATOM | EX_FUNCTIONCALL | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_CALL_END);
 		} else if(cls & EX_STRING_SINGLE) {
 			// Single quote found. Either starts or finishes a string.
-			console.log("Current: " + state.current_current() + " + " + ch);
+			debug("Current: " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 			if(!(expect & EX_STRING_CHARACTER)) {
 				state.expect_set(EX_STRING_CHARACTER | EX_STRING_SINGLE);
 			} else if(expect & EX_STRING_SINGLE) {
-				console.log("END SINGLE QUOTE STRING");
+				debug("END SINGLE QUOTE STRING");
 				state.expect_set(EX_SEPARATOR | EX_CALL_END);
 			}
 		} else if(cls & EX_STRING_DOUBLE) {
 			// Double quote found. Either starts or finishes a string.
-			console.log("Current: " + state.current_current() + " + " + ch);
+			debug("Current: " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 			if(!(expect & EX_STRING_CHARACTER)) {
-				console.log("START DOUBLE QUOTE STRING");
+				debug("START DOUBLE QUOTE STRING");
 				state.expect_set(EX_STRING_CHARACTER | EX_STRING_DOUBLE);
 			} else if(expect & EX_STRING_DOUBLE) {
-				console.log("END DOUBLE QUOTE STRING");
+				debug("END DOUBLE QUOTE STRING");
 				state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
 			}
 		} else if(cls & EX_NUMBER && !(expect & EX_STRING_CHARACTER)) {
 			// Number found.
-			console.log("Number : " + state.current_current() + " + " + ch);
+			debug("Number : " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 			state.expect_set(EX_NUMBER | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
 		} else if(cls & EX_VARIABLE && !(expect & EX_STRING_CHARACTER)) {
 			// Variable name found
-			console.log("Variable: " + state.current_current() + " + " + ch);
+			debug("Variable: " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 			state.expect_set(EX_VARIABLE | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
 		} else if(cls & EX_STRING_CHARACTER && expect & EX_STRING_CHARACTER) {
 			// We are in a string and we got a string character.
-			console.log("Current: " + state.current_current() + " + " + ch);
+			debug("Current: " + state.current_current() + " + " + ch);
 			state.current_append(ch);
 		} else if(cls & EX_CALL_END && expect & EX_CALL_END) {
 			// The current call parameter list has ended.
-			console.log("Current call ends, parse it");
-			console.log("Current: " + state.current_current());
+			debug("Current call ends, parse it");
+			debug("Current: " + state.current_current());
 			state.parts_push(state.current_current());
 			state.parts_it.prev();
-			console.log("Parts so far: ", state.parts);
+			debug("Parts so far: ", state.parts);
 			state.expect_set(EX_OPCHAIN | EX_FUNCTIONCALL | EX_OPCHAIN_END);
 			var clsFirst = state.classify(state.parts[0]);
-			console.log("Type of first object: " + GET_EX(clsFirst));
+			debug("Type of first object: " + GET_EX(clsFirst));
 			if(clsFirst & EX_ATOM) {
 				state.do_function_call();
 				if(state.parts.length > 0) {
@@ -373,7 +373,7 @@ function BootstrapParser (code) {
 					state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
 				}
 			} else if(clsFirst & EX_COMPILED) {
-				console.log("Compiled set");
+				debug("Compiled set");
 				if(state.parts.length > 1)
 					// Probably just need to push everything?
 					throw new Error("Not sure what to do here");
@@ -381,12 +381,12 @@ function BootstrapParser (code) {
 			}
 		} else if(cls & EX_OPCHAIN_END && expect & EX_OPCHAIN_END) {
 			// The current opchain has ended.
-			console.log("Current opchain ends, build it");
-			console.log("Current: " + state.current_current());
-			console.log("Parts so far: ", inspect(state.parts, {depth:null,colors:true}));
+			debug("Current opchain ends, build it");
+			debug("Current: " + state.current_current());
+			debug("Parts so far: ", inspect(state.parts, {depth:null,colors:true}));
 			if(state.parts.length > 0) {
 				state.do_function_call();
-				console.log("Parts now: ", inspect(state.parts, {depth:null,colors:true}));
+				debug("Parts now: ", inspect(state.parts, {depth:null,colors:true}));
 				state.opchain_current().push(state.parts[0]);
 				state.parts = [];
 				state.parts_it = state.parts.iterator();
@@ -421,9 +421,12 @@ var code = `(
 	(print "A+B:" (+ A B))
 )`;
 
-var parsed = BootstrapParser(code);
-console.log("Parsed: ", inspect(parsed, {depth: null, colors: true}));
+var result = timeCall("Parse code", () => BootstrapParser(code));
+var parsed = result[0];
+console.log("Parsed: " + inspect(parsed, {depth: null, colors: true}));
+console.log("Parsed in " + result[1] + "ms");
 
 var i = new Lithp();
 parsed.importClosure(i.functions);
-i.run(parsed);
+result = timeCall("Run code", () => i.run(parsed));
+console.log("Executed in " + result[1] + "ms");

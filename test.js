@@ -8,7 +8,6 @@ var Lithp = require('./.').Lithp;
 
 var samples = require('./lib/samples');
 var lithp = new Lithp();
-(require('./lib/builtins')).setup(lithp);
 
 var sample;
 // Select your desired sample here
