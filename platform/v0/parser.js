@@ -320,7 +320,7 @@ function BootstrapParser (code) {
 			state.parts_it.prev();
 			state.current_set('');
 			console.log("Parts so far: ", state.parts_get_current());
-			state.expect_set(EX_ATOM | EX_FUNCTIONCALL | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_CALL_END);
+			state.expect_set(EX_ATOM | EX_FUNCTIONCALL | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_CALL_END);
 		} else if(cls & EX_STRING_SINGLE) {
 			// Single quote found. Either starts or finishes a string.
 			console.log("Current: " + state.current_current() + " + " + ch);
@@ -331,11 +331,6 @@ function BootstrapParser (code) {
 				console.log("END SINGLE QUOTE STRING");
 				state.expect_set(EX_SEPARATOR | EX_CALL_END);
 			}
-		} else if(cls & EX_NUMBER && !(expect & EX_STRING_CHARACTER)) {
-			// Number found.
-			console.log("Number : " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-			state.expect_set(EX_NUMBER | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
 		} else if(cls & EX_STRING_DOUBLE) {
 			// Double quote found. Either starts or finishes a string.
 			console.log("Current: " + state.current_current() + " + " + ch);
@@ -347,6 +342,16 @@ function BootstrapParser (code) {
 				console.log("END DOUBLE QUOTE STRING");
 				state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
 			}
+		} else if(cls & EX_NUMBER && !(expect & EX_STRING_CHARACTER)) {
+			// Number found.
+			console.log("Number : " + state.current_current() + " + " + ch);
+			state.current_append(ch);
+			state.expect_set(EX_NUMBER | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
+		} else if(cls & EX_VARIABLE && !(expect & EX_STRING_CHARACTER)) {
+			// Variable name found
+			console.log("Variable: " + state.current_current() + " + " + ch);
+			state.current_append(ch);
+			state.expect_set(EX_VARIABLE | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
 		} else if(cls & EX_STRING_CHARACTER && expect & EX_STRING_CHARACTER) {
 			// We are in a string and we got a string character.
 			console.log("Current: " + state.current_current() + " + " + ch);
@@ -410,7 +415,10 @@ var code = `(
     % (print  "Hello, world!")
     (print "1+1:" (+ 1 1) " Wow!")
     (print "Also a test:" (* 5 10))
-    (print "One last test:" (/ 10 2))
+	(print "One last test:" (/ 10 2))
+	(var A 5)
+	(var B 6)
+	(print "A+B:" (+ A B))
 )`;
 
 var parsed = BootstrapParser(code);
