@@ -19,6 +19,7 @@ var args = process.argv.slice(2);
 var file = "";
 var use_debug = false;
 var use_platform_v1 = false;
+var print_times = false;
 
 function show_help () {
 	console.log("Usage:");
@@ -26,6 +27,7 @@ function show_help () {
 	console.log("Available flags:");
 	console.log("    -d              Enable Lithp debug mode");
 	console.log("    -v1             Load the Platform V1 library");
+	console.log("    -t              Print times (parse and run times)");
 }
 
 args.forEach(A => {
@@ -36,7 +38,8 @@ args.forEach(A => {
 	else if(A.match(/^-(h|-help)$/)) {
 		show_help();
 		process.exit(3);
-	}
+	} else if(A.match(/^-t(imes)?$/))
+		print_times = true;
 	else if(file == "")
 		file = A;
 	else {
@@ -62,9 +65,11 @@ var code = fs.readFileSync(process.argv[2]).toString();
 var result = timeCall("Parse code", () => BootstrapParser(code));
 var parsed = result[0];
 debug("Parsed: " + (0 ? parsed.toString() : inspect(parsed, {depth: null, colors: true})));
-debug("Parsed in " + result[1] + "ms");
+if(print_times)
+	console.log("Parsed in " + result[1] + "ms");
 
 parsed.importClosure(instance.functions);
 result = timeCall("Run code", () => instance.run(parsed));
-debug("Executed in " + result[1] + "ms");
+if(print_times)
+	console.log("Executed in " + result[1] + "ms");
 
