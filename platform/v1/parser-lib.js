@@ -9,7 +9,7 @@ var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),
 	Lithp = lithp.Lithp,
-	debug = Lithp.debug,
+	debug = lithp.debug,
 	types = lithp.Types,
 	OpChain = types.OpChain,
 	Atom = types.Atom,
@@ -329,6 +329,21 @@ builtin('js-bridge/1', ['FunctionDefinition'], function(FnDef, State) {
 		}
 	)(this);
 });
+// Invoke a JavaScript function using apply.
+builtin('invoke/*', [], Args => {
+	if(Args.length < 2)
+		throw new Error("Invoke requires object and function name at least");
+	var Obj = Args[0];
+	var FnName = Args[1];
+	var Params = Args.slice(2);
+	if(!Obj[FnName])
+		throw new Error("Invoke attempted, but " + FnName + " does not exist in: " + inspect(Obj));
+	if(typeof Obj[FnName] != 'function')
+		throw new Error("Invoke attempted, but " + FnName + " does not refer to a function: " + typeof(Obj[FnName]));
+	return Obj[FnName].apply(Obj, Params);
+});
+builtin('null', [], () => null);
+builtin('undefined', [], () => undefined);
 
 function lib_each (chain) {
 	/**

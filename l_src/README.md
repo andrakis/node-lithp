@@ -8,9 +8,17 @@ Current files
 
 	Calculate the factorial of a number using recursive function calls.
 
+* readfile.lithp
+
+	Demonstrate reading a file by calling native Node.js functions.
+
+* scope.lithp
+
+	Demonstrate variable scope and returning functions that can be called.
+
 * simple.lithp
 
-	Working example. Calls some functions, uses some variables.
+	Simple working example. Calls some functions, uses some variables.
 
 * subchains.lithp
 

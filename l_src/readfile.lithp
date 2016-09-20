@@ -1,0 +1,32 @@
+% Demonstrate reading a file using node builtins
+%
+% Requires the -v1 switch to run.js, as it relies on Platform V1 features.
+%
+(
+	(var Fs (require "fs"))
+
+	% Use the readFileSync method directly
+	(var FsReadFileSync (dict-get Fs "readFileSync"))
+	(print "readFileSync:" (inspect FsReadFileSync))
+	% You can call FsReadFileSync using call/* (a parser-specific builtin.)
+	(print "Read index.js:" (call FsReadFileSync "index.js"))
+
+	% Now test using a callback and readFile
+	(var FsReadFile (dict-get Fs "readFile"))
+	(print "readFile:" (inspect FsReadFile))
+	% js-bridge returns a native JavaScript function that, when called, invokes
+	% the lithp interpreter with the given function definition, and sets all
+	% provided parametes.
+	(var Our_callback (js-bridge #Err,Data :: (
+		(if (!= (null) Err) (
+			(print "Failed to read file, err:  " Err)
+		) (else (
+			(print "Data from file:")
+			(print (invoke Data "toString"))
+		)))
+	)))
+	% You can call FsReadFile using call/* (a parser-specific builtin.)
+	(call FsReadFile "index.js" Our_callback)
+	(call FsReadFile "non-existant" Our_callback)
+)
+

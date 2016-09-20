@@ -1,0 +1,19 @@
+% Tests variable scoping.
+%
+% Requires the -v1 switch to run.js, as it relies on Platform V1 features.
+%
+(
+	% add/2 is a function that returns a scoped FunctionDefinition that can be
+	% called.
+	(def add #A :: (
+		% scope/1 is a library function that ties the given anonymous function
+		% to the call scope it was called in, allowing variables to be retained.
+		(scope #B :: ((+ A B)))
+	))
+	(var Add5 (add 5))
+	(var Add10 (add 10))
+	(var N 10)
+	(print "Add5 with " N ": " (call Add5 N))
+	(print "Add10 with " N ": " (call Add10 N))
+	(assert (== 15 (call Add5 10)))
+)
