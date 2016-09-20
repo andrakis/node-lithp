@@ -177,3 +177,12 @@ functions in the future.
 		(call FsReadFile "index.js" Our_callback)
 	 )
 
+
+Syntax Highlighting
+===================
+
+See the directory `syntax` for Lithp syntax files.
+
+Presently, only EditPlus syntax files are provided. Submissions for
+syntax files for other popular editors welcome. In particular, a VI
+syntax file would be a great addition.
