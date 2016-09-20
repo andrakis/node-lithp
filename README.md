@@ -3,14 +3,26 @@ Lithp
 
 A small Lisp-like programming language, with a very small interpreter.
 
-The main interpreter is just over 250 lines of sparse code (not counting
-structures and runtime library.) This size would be much lower without the
-debug statements and detailed comments (around 150 lines.)
+The main interpreter is just under 300 lines of sparse code (not counting
+structures and runtime library.) This size would be even lower without the
+debug statements and detailed comments.
 
-A simple parser currently exists, and is a work in progress. See the file
-`platform/v0/parser.js` for the current version. It does not yet support
-some critical constructs such as anonymous functions, but does handle
-simple function calls (including nested function calls.)
+A working parser exists, known as the Bootstrap Parser or Platform V0 Parser.
+This parser is very simple and will not protect you from simple mistakes like
+too many closing brackets. The parser in Platform V1 will be designed with
+better parsing and error messages.
+
+See `run.js` or the next section for information on how to run some sample code.
+
+Running some sample code
+========================
+
+Use the file 'run.js' in the top level directory, and specify a path to a Lithp
+source file. There are 3 provided in `l_src` that work with the current parser.
+
+```
+	node run.js l_src/factorial.lithp
+```
 
 Design
 ======
@@ -117,7 +129,7 @@ Define two functions and use comparison logic to print a message
 based on the input.
 
 	  (
-	 	(def is_zero#N :: ((== 0 N)))
+		(def is_zero#N :: ((== 0 N)))
 		(def test#N :: (
 			(if (is_zero N) (
 				(print "N is zero")
@@ -147,11 +159,11 @@ given number, and call it.
 Read a file
 -----------
 
-Note: this example is implemented in `platform/v0/parser.js`, and relies on
-functions provided by Platform 0.
+Note: this example is implemented in `platform/v1/parser.js`, and relies on
+functions provided by Platform 1.
 
 Additionally, it is using the Node.js API. It will be replaced with native
-functions in Platform 1.
+functions in the future.
 
 	 (
 		(var Fs (require "fs"))

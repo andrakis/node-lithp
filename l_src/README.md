@@ -4,10 +4,14 @@ Lithp Source Example Files
 Current files
 -------------
 
-* simple.lith
+* factorial.lithp
+
+	Calculate the factorial of a number using recursive function calls.
+
+* simple.lithp
 
 	Working example. Calls some functions, uses some variables.
 
-* subchains.lith
+* subchains.lithp
 
-	Test out control flow. Not currently working.
+	Test out control flow.
