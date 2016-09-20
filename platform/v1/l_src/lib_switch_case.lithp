@@ -1,0 +1,20 @@
+ (
+	% For use with switch/*, a case statement that returns a function that
+	% is called by switch/*, and if the Value given by switch/* matches,
+	% {ok, Result} is returned. Otherwise {false} is returned.
+	(def case #Eq,Result :: (
+		(scope #Value :: (
+			% TODO: else is getting evaluated immediately, removed.
+			(if (== Eq Value) (
+				(tuple ok Result)
+			) (
+				(tuple false)
+			))
+		))
+	))
+	(var CaseTrue (case true "True"))
+	(var CaseFalse (case false "False"))
+	(var Value false)
+	(print "CaseTrue on " Value ":" (call CaseTrue Value))
+	(print "CaseFalse on " Value ":" (call CaseFalse Value))
+ )
