@@ -34,7 +34,11 @@ var EX_LITERAL = 1 << 0,
     EX_CALL_END          = 1 << 10,  // Expected a ), end of call
     EX_OPCHAIN_END       = 1 << 11,  // Expect a ), end of opchain
     EX_COMMENT           = 1 << 12,
-    EX_COMPILED          = 1 << 13; // Already compiled
+    EX_COMPILED          = 1 << 13, // Already compiled
+    EX_FUNCTION_MARKER   = 1 << 14, // #     next: Arg1,Arg2 :: (...)
+    EX_FUNCTION_PARAM    = 1 << 15, // #     this: Arg1
+    EX_FUNCTION_PARAM_SEP= 1 << 16, // #Arg1 this: ,
+    EX_FUNCTION_BODY     = 1 << 17; // #Arg1,Arg2  this: ::
 
 var EX_TABLE = {
 	EX_LITERAL: EX_LITERAL,
@@ -43,14 +47,18 @@ var EX_TABLE = {
 	EX_NUMBER: EX_NUMBER,
 	EX_ATOM: EX_ATOM,
 	EX_VARIABLE: EX_VARIABLE,
-	EX_STRING_CHARACTER: EX_STRING_CHARACTER, 
+	EX_STRING_CHARACTER: EX_STRING_CHARACTER,
 	EX_STRING_SINGLE: EX_STRING_SINGLE,
 	EX_STRING_DOUBLE: EX_STRING_DOUBLE,
 	EX_PARAM_SEPARATOR: EX_PARAM_SEPARATOR,
 	EX_CALL_END: EX_CALL_END,
 	EX_OPCHAIN_END: EX_OPCHAIN_END,
 	EX_COMMENT: EX_COMMENT,
-	EX_COMPILED: EX_COMPILED
+	EX_COMPILED: EX_COMPILED,
+	EX_FUNCTION_MARKER: EX_FUNCTION_MARKER,
+	EX_FUNCTION_PARAM: EX_FUNCTION_PARAM,
+	EX_FUNCTION_PARAM_SEP: EX_FUNCTION_PARAM_SEP,
+	EX_FUNCTION_BODY: EX_FUNCTION_BODY
 };
 
 function GET_EX (n) {
@@ -58,82 +66,19 @@ function GET_EX (n) {
 	for(var k in EX_TABLE)
 		if(EX_TABLE[k] & n)
 			parts.push(k);
-	return parts.join(' | ');
+	if(parts.length > 0)
+		return parts.join(' | ');
 	throw new Error("Expected value not known: " + n);
 }
 
 function ParserState (parent) {
-	this.chains = [new OpChain(parent)];
-	this.chains_it = this.chains.iterator();
-	this.expect = [EX_OPCHAIN];
-	this.expect_it = this.expect.iterator();
-	this.current = [''];
-	this.current_it = this.current.iterator();
-	this.parts = [];
-	this.parts_it = this.parts.iterator();
-	this.parts_pending = [];
-	this.parts_pending_it = this.parts_pending.iterator();
+	this.ops = [[]];
+	this.ops_it = this.ops.iterator();
+	this.current_word = '';
+	this.expect = EX_OPCHAIN;
+	this.depth = 0;
+	this.in_variable = false;
 }
-
-ParserState.prototype.opchain_current = function() { return this.chains_it.get(); };
-ParserState.prototype.opchain_push = function() {
-	if(arguments.length > 0)
-		throw new Error('Do not give any paramters');
-	var chain = new OpChain(this.opchain_current());
-	this.chains_it.push(chain);
-};
-
-ParserState.prototype.expect_current = function() { return this.expect_it.get(); };
-ParserState.prototype.expect_push = function(val) {
-	if(arguments.length == 0)
-		throw new Error('Please provide the expect classes');
-	this.expect_it.push(val);
-};
-ParserState.prototype.expect_set = function(val) {
-	this.expect_it.set_current(val);
-};
-
-ParserState.prototype.current_current = function() {
-	return this.current_it.get();
-};
-ParserState.prototype.current_push = function() {
-	if(arguments.length > 0)
-		throw new Error('Do not give any parameters');
-	return this.current_it.push('');
-};
-
-ParserState.prototype.current_pop = function() {
-	if(arguments.length > 0)
-		throw new Error('Do not give any parameters');
-	return this.current_it.pop();
-};
-
-ParserState.prototype.current_set = function(current) {
-	this.current_it.set_current(current);
-	return this.current_it.get();
-};
-
-ParserState.prototype.current_append = function(ch) {
-	return this.current_set(this.current_it.get() + ch);
-};
-
-ParserState.prototype.parts_push = function(p) {
-	if(arguments.length == 0)
-		throw new Error('Please provide the part to push');
-	this.parts_it.push(p);
-};
-
-ParserState.prototype.parts_pop = function() {
-	return this.parts_it.pop();
-};
-
-ParserState.prototype.parts_get_current = function() {
-	return this.parts_it.get();
-};
-
-ParserState.prototype.parts_set_current = function(p) {
-	this.parts_it.set_current(p);
-};
 
 // Classify the given character(s). It could suit a number of different
 // attributes at once.
@@ -141,6 +86,8 @@ ParserState.prototype.classify = function(ch) {
 	var val = 0;
 	if(typeof ch != 'string')
 		return EX_COMPILED;
+	if(ch.charCodeAt(0) == 9)
+		return EX_PARAM_SEPARATOR;
 	switch(ch) {
 		case '(': val = EX_OPCHAIN | EX_FUNCTIONCALL; break;
 		case ')': val = EX_CALL_END | EX_OPCHAIN_END; break;
@@ -148,13 +95,16 @@ ParserState.prototype.classify = function(ch) {
 		case "'": val = EX_STRING_SINGLE; break;
 		case '"': val = EX_STRING_DOUBLE; break;
 		case '%': val = EX_COMMENT; break;
+		case '#': val = EX_FUNCTION_MARKER; break;
+		case ',': val = EX_FUNCTION_PARAM_SEP; break;
+		case ':': val = EX_FUNCTION_BODY; break; // Repeated twice for functions
 		default:
 			if(ch.match(/^[a-z][a-zA-Z0-9_]*$/))
 				val = EX_ATOM; //| EX_FUNCTIONCALL;
 			else if(ch.match(/^[A-Z][A-Za-z0-9_]*$/))
-				val = EX_VARIABLE;
+				val = EX_VARIABLE | EX_FUNCTION_PARAM;
 			else if(ch.match(/[0-9][0-9.]*$/))
-				val = EX_NUMBER;
+				val = EX_NUMBER | EX_ATOM;
 			else if(ch.length > 1 && ch.match(/^".*"$/))
 				val = EX_STRING_DOUBLE;
 			else if(ch.length > 1 && ch.match(/^'.*'$/))
@@ -169,79 +119,117 @@ ParserState.prototype.classify = function(ch) {
 	return val;
 };
 
-ParserState.prototype.finalize = function() {
-	return this.opchain_current();
+ParserState.prototype.mapParam = function(P, chain, fnName) {
+	if(!Array.isArray(P)) {
+		var cls = this.classify(P);
+		debug("Classified: " + GET_EX(cls));
+		if(cls & EX_STRING_DOUBLE || cls & EX_STRING_SINGLE)
+			return new LiteralValue(P.slice(1, P.length - 1));
+		else if(cls & EX_VARIABLE) {
+			if(fnName == 'get' || fnName == 'set' || fnName == 'var')
+				return new VariableReference(P);
+			return new FunctionCall("get/1", [new VariableReference(P)]);
+		} else if(cls & EX_NUMBER)
+			return new LiteralValue(parseInt(P));
+		else if(cls & EX_ATOM)
+			return Atom(P);
+		else
+			throw new Error("Unable to map parameter: " + inspect(P));
+	} else {
+		return this.convert(chain, P);
+	}
+	throw new Error("Unable to map parameter: " + inspect(P));
 };
 
-ParserState.prototype.do_function_call = function() {
-	// Function call
-	var fnName = this.parts[0];
-	var params = [];
-	for(var i = 1; i < this.parts.length; i++) {
-		var part = this.parts[i];
-		debug("Part: " + part + " type: " + typeof part);
-		// Already processed?
-		if(typeof part != 'string') {
-			params.push(part);
-			continue;
-		}
-		// TODO: Determine where these empty strings come from
-		if(part == '')
-			continue;
-		var clsThis = this.classify(part);
-		debug("Type of argument " + i + ": " + GET_EX(clsThis));
-		if(clsThis & EX_COMPILED)
-			params.push(EX_COMPILED);
-		else if(clsThis & EX_NUMBER)
-			params.push(new LiteralValue(parseInt(part)));
-		else if(clsThis & EX_STRING_DOUBLE || clsThis & EX_STRING_SINGLE)
-			params.push(new LiteralValue(part.slice(1, part.length - 1)));
-		else if(clsThis & EX_ATOM)
-			params.push(Atom(part))
-		else if(clsThis & EX_VARIABLE) {
-			switch(fnName) {
-				// These become Variable references for the following
-				// functions.
-				case 'set':
-				case 'get':
-				case 'var':
-					params.push(new VariableReference(part));
-					break;
-				default:
-					// Convert into (get) call
-					params.push(new FunctionCall("get/1", [
-						new VariableReference(part)
-					]));
-					break;
-			}
+ParserState.prototype.convert = function(chain, curr) {
+	var eleFirst = curr[0];
+	var clsFirst = this.classify(eleFirst);
+	var op;
+	debug("  First element: ", eleFirst);
+	debug("     Classified: ", GET_EX(clsFirst));
+	if(curr.length == 0)
+		return undefined;
+	if(curr._fndef) {
+		debug("FNDEF");
+		debug("Params: ", curr._fnparams);
+		var params = curr._fnparams;
+		curr._fndef = false;
+		//var newChain = new OpChain(chain);
+		var body = this.convert(chain, curr);
+		var anon = AnonymousFunction(chain, params, body);
+		debug("Got body for function:", body.toString());
+		return anon;
+	}
+	if(clsFirst & EX_ATOM) {
+		// FunctionCall
+		var params = curr.slice(1);
+		params = params.map(P => this.mapParam(P, chain, eleFirst));
+		if(params.length == 0 && this.classify(eleFirst) & EX_NUMBER) {
+			debug("CONVERT TO LITERAL");
+			return this.mapParam(eleFirst, chain, eleFirst);
 		} else {
-			throw new Error("Don't know what to do with: " + GET_EX(clsThis));
+			debug("FUNCTIONCALL " + eleFirst + "/" + params.length);
+			op = new FunctionCall(eleFirst + "/" + params.length, params);
+			return op;
 		}
-	}
-	debug("(" + fnName + " ", params, ")");
-	this.current_set('');
-	this.parts = this.parts_pending.pop() || [];
-	this.parts_it = this.parts.iterator();
-	this.parts_it.push(new FunctionCall(fnName + "/" + params.length, params));
-	debug("Parts now: ", this.parts);
-	if(this.parts.length == 1) {
-		debug("Now pushing completed function call");
-		// We can now push this to the opchain
-		this.opchain_current().push(this.parts[0]);
-		this.parts = [];
-		this.parts_it = this.parts.iterator();
+	} else if(Array.isArray(eleFirst)) {
+		// Must be an OpChain
+		var newChain = new OpChain(chain);
+		for(var i = 0; i < curr.length; i++) {
+			debug("Member " + i + " of chain: ", curr[i]);
+			newChain.push(this.convert(newChain, curr[i]));
+		}
+		return newChain;
+	} else if(curr.length > 0) {
+		// Must be an OpChain
+		var newChain = new OpChain(chain);
+		for(var i = 0; i < curr.length; i++) {
+			debug("Member " + i + " of chain: ", curr[i]);
+			//process.exit();
+			//chain.push(this.convert(newChain, curr[i]));
+			newChain.push(this.mapParam(curr[i], newChain, eleFirst));
+		}
+		return newChain;
+	} else {
+		throw new Error("Unable to convert: " + inspect(curr));
 	}
 };
 
-function BootstrapParser (code) {
-	var state = new ParserState();
-	var it = code.split('').iterator();
+ParserState.prototype.finalize = function() {
+	debug("Finalize tree: ", this.ops);
+	var chain = new OpChain();
+	var it = this.ops.iterator();
+	var curr;
+	while((curr = it.next())) {
+		var c = this.convert(chain, curr);
+		debug("Got from convert: ", c);
+		if(c)
+			chain.push(c);
+	}
+	return chain;
+};
+
+ParserState.prototype.parseBody = function(it, dest) {
+	var params = this.current_word.length > 0 ?
+		this.current_word.split(',') :
+		[];
+	debug(" Body: params count: " + params.length);
+	this.current_word = '';
+	var d = [];
+	d._fndef = true;
+	d._fnparams = params;
+	var chain = this.parseSection(it, d);
+	debug(" Body chain: " + inspect(chain, {depth: null, colors:true}));
+	return chain;
+};
+
+ParserState.prototype.parseSection = function(it, dest) {
 	var ch;
 
 	// Move to the next valid character.
 	// Skips newlines, tabs, and also strips comment lines.
 	function moveNext () {
-		var expect = state.expect_current();
+		var expect = this.expect;
 		var ch = it.next();
 		if(ch === undefined)
 			return ch;
@@ -269,17 +257,19 @@ function BootstrapParser (code) {
 		return ch;
 	}
 
+	var depth = 1;
+
 	while( (ch = moveNext()) != undefined) {
 		debug("Parse character: " + ch + " " + ch.charCodeAt(0).toString(10));
 
 		// Classify the current character
-		var cls = state.classify(ch);
+		var cls = this.classify(ch);
 		debug("      Type     : " + GET_EX(cls));
-		debug("  expect_current: 0x" + state.expect_current().toString(16) + " (" + GET_EX(state.expect_current()) + ")");
+		debug("  expect_current: 0x" + this.expect.toString(16) + " (" + GET_EX(this.expect) + ")");
 
 		// Skip spaces we are not expecting. This really only affects extra
 		// space characters within a line.
-		var expect = state.expect_current();
+		var expect = this.expect;
 		if(cls & EX_PARAM_SEPARATOR &&
 			!(expect & EX_PARAM_SEPARATOR) &&
 			!(expect & EX_STRING_CHARACTER)) {
@@ -287,126 +277,104 @@ function BootstrapParser (code) {
 			continue;
 		}
 
-		// Has the character been classified as something we are expecting?
-		if(!(cls & expect))
-			throw new Error("Unexpected " + GET_EX(cls) + ", was expecting: " + GET_EX(state.expect));
+		if(cls & EX_FUNCTION_BODY && !(expect & EX_FUNCTION_BODY)) {
+			debug("Found the extra :, ignoring");
+			continue;
+		}
 
-		// Based on the class and what we're currently expecting, adjust the
-		// parser state. This is the main parsing section.
-		if(cls & EX_OPCHAIN && expect & EX_OPCHAIN) {
-			// Start a new opchain
-			debug("Start OPCHAIN");
-			state.current_push();
-			state.expect_set(EX_FUNCTIONCALL | EX_ATOM | EX_VARIABLE | EX_NUMBER);
-		} else if(cls & EX_FUNCTIONCALL && expect & EX_FUNCTIONCALL) {
-			// Start a function call (pushes state)
-			debug("Start FUNCTIONCALL, current parts: " + state.parts);
-			state.current_push();
-			state.parts_pending_it.push(state.parts);
-			state.parts = [];
-			state.parts_it = state.parts.iterator();
-			debug("Pending parts: " + state.parts_pending);
-			state.expect_set(EX_ATOM | EX_PARAM_SEPARATOR | EX_CALL_END);
-			state.current_set('');
-		} else if(cls & EX_ATOM && !(expect & EX_STRING_CHARACTER)) {
-			// Build an atom
-			debug("Current: " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-			state.expect_set(EX_ATOM | EX_PARAM_SEPARATOR | EX_CALL_END);
-		} else if(cls & EX_PARAM_SEPARATOR && !(expect & EX_STRING_CHARACTER)) {
-			// A separater has been found. Save current token and push it
-			// onto the parts list. When we find the end of the function call,
-			// we'll create the actual instruction.
-			debug("SEPERATOR");
-			debug("Current: " + state.current_current());
-			state.parts_push(state.current_current());
-			state.parts_it.prev();
-			state.current_set('');
-			debug("Parts so far: ", state.parts_get_current());
-			state.expect_set(EX_ATOM | EX_FUNCTIONCALL | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_CALL_END);
-		} else if(cls & EX_STRING_SINGLE) {
-			// Single quote found. Either starts or finishes a string.
-			debug("Current: " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-			if(!(expect & EX_STRING_CHARACTER)) {
-				state.expect_set(EX_STRING_CHARACTER | EX_STRING_SINGLE);
-			} else if(expect & EX_STRING_SINGLE) {
-				debug("END SINGLE QUOTE STRING");
-				state.expect_set(EX_SEPARATOR | EX_CALL_END);
+		// When a variable goes from CAPStosmall
+		if(cls & EX_ATOM && expect & EX_VARIABLE && this.in_variable) {
+			debug("Found atom but was expecting variable, supposing it is part of the name");
+			this.current_word += ch;
+			continue;
+		}
+
+		// Has the character been classified as something we are expecting?
+		if(!(cls & expect)) {
+			throw new Error("Unexpected " + GET_EX(cls) + ", was expecting: " + GET_EX(this.expect));
+		}
+
+		if(cls & EX_OPCHAIN && !(expect & EX_STRING_CHARACTER)) {
+			this.expect = EX_OPCHAIN | EX_NUMBER | EX_LITERAL | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
+			this.current_word = '';
+			//dest.push([]);
+			dest.push(this.parseSection(it, []));
+		} else if(cls & EX_OPCHAIN_END && !(expect & EX_STRING_CHARACTER)) {
+			if(this.current_word.length > 0)
+				dest.push(this.current_word);
+			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE;
+			this.current_word = '';
+			return dest;
+		} else if(cls & EX_ATOM && expect & EX_ATOM) {
+			this.current_word += ch;
+			this.expect = EX_ATOM | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_PARAM_SEPARATOR &&
+		        !(expect & EX_STRING_CHARACTER) &&
+		        !(expect & EX_FUNCTION_PARAM)) {
+			debug("SEPARATOR");
+			if(this.current_word.length > 0) {
+				dest.push(this.current_word);
 			}
+			this.current_word = '';
+			this.expect = EX_OPCHAIN | EX_VARIABLE | EX_NUMBER | EX_LITERAL | EX_ATOM | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
+			this.in_variable = false;
 		} else if(cls & EX_STRING_DOUBLE) {
-			// Double quote found. Either starts or finishes a string.
-			debug("Current: " + state.current_current() + " + " + ch);
-			state.current_append(ch);
 			if(!(expect & EX_STRING_CHARACTER)) {
 				debug("START DOUBLE QUOTE STRING");
-				state.expect_set(EX_STRING_CHARACTER | EX_STRING_DOUBLE);
-			} else if(expect & EX_STRING_DOUBLE) {
-				debug("END DOUBLE QUOTE STRING");
-				state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
-			}
-		} else if(cls & EX_NUMBER && !(expect & EX_STRING_CHARACTER)) {
-			// Number found.
-			debug("Number : " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-			state.expect_set(EX_NUMBER | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
-		} else if(cls & EX_VARIABLE && !(expect & EX_STRING_CHARACTER)) {
-			// Variable name found
-			debug("Variable: " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-			state.expect_set(EX_VARIABLE | EX_PARAM_SEPARATOR | EX_CALL_END | EX_OPCHAIN_END);
-		} else if(cls & EX_STRING_CHARACTER && expect & EX_STRING_CHARACTER) {
-			// We are in a string and we got a string character.
-			debug("Current: " + state.current_current() + " + " + ch);
-			state.current_append(ch);
-		} else if(cls & EX_CALL_END && expect & EX_CALL_END) {
-			// The current call parameter list has ended.
-			debug("Current call ends, parse it");
-			debug("Current: " + state.current_current());
-			state.parts_push(state.current_current());
-			state.parts_it.prev();
-			debug("Parts so far: ", state.parts);
-			state.expect_set(EX_OPCHAIN | EX_FUNCTIONCALL | EX_OPCHAIN_END);
-			var clsFirst = state.classify(state.parts[0]);
-			debug("Type of first object: " + GET_EX(clsFirst));
-			if(clsFirst & EX_ATOM) {
-				state.do_function_call();
-				if(state.parts.length > 0) {
-					// Still more to go
-					state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
-				}
-			} else if(clsFirst & EX_COMPILED) {
-				debug("Compiled set");
-				if(state.parts.length > 1)
-					// Probably just need to push everything?
-					throw new Error("Not sure what to do here");
-				state.opchain_current.push(state.parts[0]);
-			}
-		} else if(cls & EX_OPCHAIN_END && expect & EX_OPCHAIN_END) {
-			// The current opchain has ended.
-			debug("Current opchain ends, build it");
-			debug("Current: " + state.current_current());
-			debug("Parts so far: ", inspect(state.parts, {depth:null,colors:true}));
-			if(state.parts.length > 0) {
-				state.do_function_call();
-				debug("Parts now: ", inspect(state.parts, {depth:null,colors:true}));
-				state.opchain_current().push(state.parts[0]);
-				state.parts = [];
-				state.parts_it = state.parts.iterator();
-				state.expect_set(EX_OPCHAIN | EX_OPCHAIN_END);
-				if(state.parts.length > 0) {
-					// Still more to go
-					state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
-				}
+				this.expect = EX_STRING_CHARACTER | EX_STRING_DOUBLE;
+				this.current_word = ch;
 			} else {
-				// Still more to go
-				state.expect_set(EX_PARAM_SEPARATOR | EX_CALL_END);
+				debug("END DOUBLE QUOTE STRING");
+				this.current_word += ch;
+				if(this.current_word.length > 0)
+					dest.push(this.current_word);
+				this.expect = EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+				this.current_word = '';
 			}
+		} else if(cls & EX_STRING_CHARACTER && expect & EX_STRING_CHARACTER) {
+			this.current_word += ch;
+		} else if(cls & EX_VARIABLE && expect & EX_VARIABLE) {
+			this.in_variable = true;
+			this.current_word += ch;
+			this.expect = EX_VARIABLE | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+		} else if(cls & EX_NUMBER && expect & EX_NUMBER) {
+			this.current_word += ch;
+			this.expect = EX_NUMBER | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+		} else if(cls & EX_FUNCTION_MARKER && expect & EX_FUNCTION_MARKER) {
+			debug("BEGIN FUNCTION MARKER");
+			// Current: #
+			// Next: Arg1[,Arg2] :: Ops
+			this.expect = EX_FUNCTION_PARAM | EX_FUNCTION_PARAM_SEP | EX_FUNCTION_BODY | EX_PARAM_SEPARATOR;
+		} else if((cls & EX_FUNCTION_PARAM || cls & EX_FUNCTION_PARAM_SEP) &&
+		           expect & EX_FUNCTION_PARAM) {
+			this.current_word += ch;
+			debug("CONTINUE FUNCTION PARAM: " + this.current_word);
+		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_FUNCTION_PARAM_SEP) {
+			debug("PARAMS END");
+			this.expect = EX_FUNCTION_BODY;
+		} else if(cls & EX_FUNCTION_BODY && expect & EX_FUNCTION_BODY) {
+			debug("FUNCTION BODY STARTS, current word: " + this.current_word);
+			this.expect = EX_OPCHAIN;
+			dest.push(this.parseBody(it, []));
+			this.current_word = '';
+			return dest;
 		} else {
-			throw new Error("Don't know what to do with: " + GET_EX(cls));
+			throw new Error('Unhandled combination');
 		}
-	}
 
+		debug("State current: ");
+		debug("  Ops: ", this.ops);
+		debug("  Expect: " + GET_EX(this.expect));
+		debug("  Current word: " + this.current_word);
+		debug("  Depth: " + this.depth);
+	}
+	return dest;
+}
+
+function BootstrapParser (code) {
+	var state = new ParserState();
+	var it = code.split('').iterator();
+	state.ops = state.parseSection(it, []);
 	return state.finalize();
 }
 
@@ -414,20 +382,40 @@ exports.BootstrapParser = BootstrapParser;
 
 var code = `(
 	(print "Hello, world!")
+	(var A 0)
+	(if (== A 0) (
+		(print "A is zero")
+		(print ":)")
+	) (else (
+		(print "A is not zero, it is " A)
+		(print ":(")
+	)))
 )`;
 
-if(process.argv.length == 3) {
-	var fs = require('fs');
-	code = fs.readFileSync(process.argv[2]).toString();
-	console.log("Code:", code);
-}
+code = `(
+	(def equal #A,B :: ((== A B)))
+	(print "Equal: " (equal 0 1))
+)`
 
-var result = timeCall("Parse code", () => BootstrapParser(code));
-var parsed = result[0];
-console.log("Parsed: " + inspect(parsed, {depth: null, colors: true}));
-console.log("Parsed in " + result[1] + "ms");
+if(1)code = `(
+	(def add #A,B :: ((+ A B)))
+	(print "Add 5+10: " (add 5 10))
+)`;
 
-var i = new Lithp();
-parsed.importClosure(i.functions);
-result = timeCall("Run code", () => i.run(parsed));
-console.log("Executed in " + result[1] + "ms");
+code = `
+	 ((def fac #N :: (
+	    (if (== 0 N) (
+			(1)
+		) ((else (
+			(* N (fac (- N 1)))
+		))))
+	  ))
+	  (var Test 10)
+	  (print "factorial of " Test ": " (fac Test))
+	 )
+`;
+
+if(0) code = `(
+	(def test # :: (("Hello")))
+	(print "Test: " (test))
+)`;
