@@ -1,7 +1,10 @@
 /**
- * Parser V1, Platform V0.
+ * Bootstrap Parser, Platform V0, for Lithp
  *
- * Very simple Lithp parser.
+ * Main parser for the first version of Lithp. A simple parser that can be used
+ * to create a better parser later (Platform V1).
+ *
+ * See 'run.js' (in the top level directory) for a working usage of this parser.
  */
 
 var util = require('util'),
@@ -100,7 +103,7 @@ ParserState.prototype.classify = function(ch) {
 		case ':': val = EX_FUNCTION_BODY; break; // Repeated twice for functions
 		default:
 			if(ch.match(/^[a-z][a-zA-Z0-9_]*$/))
-				val = EX_ATOM; //| EX_FUNCTIONCALL;
+				val = EX_ATOM;
 			else if(ch.match(/^[A-Z][A-Za-z0-9_]*$/))
 				val = EX_VARIABLE | EX_FUNCTION_PARAM;
 			else if(ch.match(/[0-9][0-9.]*$/))
@@ -211,8 +214,7 @@ ParserState.prototype.finalize = function() {
 
 ParserState.prototype.parseBody = function(it, dest) {
 	var params = this.current_word.length > 0 ?
-		this.current_word.split(',') :
-		[];
+		this.current_word.split(',') : [];
 	debug(" Body: params count: " + params.length);
 	this.current_word = '';
 	var d = [];
@@ -241,18 +243,22 @@ ParserState.prototype.parseSection = function(it, dest) {
 			chCode = ch.charCodeAt(0);
 		}
 		if(ch == '%' && !(expect & EX_STRING_SINGLE || expect & EX_STRING_DOUBLE)) {
-			// Comment and not in speech, ignore this line
-			debug("COMMENT");
-			while(chCode != 10) {
+			// Comment and not in speech, ignore this line.
+			// Must keep running in a loop, in case there are more
+			// comments.
+			while(ch == '%') {
+				debug("COMMENT");
+				while(chCode != 10) {
+					ch = it.next();
+					if(ch === undefined)
+						return ch;
+					chCode = ch.charCodeAt(0);
+				}
 				ch = it.next();
-				if(ch === undefined)
-					return ch;
 				chCode = ch.charCodeAt(0);
+				if(chCode == 13)
+					ch = it.next();
 			}
-			ch = it.next();
-			chCode = ch.charCodeAt(0);
-			if(chCode == 13)
-				ch = it.next();
 		}
 		return ch;
 	}
@@ -266,6 +272,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		var cls = this.classify(ch);
 		debug("      Type     : " + GET_EX(cls));
 		debug("  expect_current: 0x" + this.expect.toString(16) + " (" + GET_EX(this.expect) + ")");
+		debug("     In var    : " + this.in_variable);
 
 		// Skip spaces we are not expecting. This really only affects extra
 		// space characters within a line.
@@ -277,13 +284,17 @@ ParserState.prototype.parseSection = function(it, dest) {
 			continue;
 		}
 
-		if(cls & EX_FUNCTION_BODY && !(expect & EX_FUNCTION_BODY)) {
+		if(cls & EX_FUNCTION_BODY &&
+		   !(expect & EX_FUNCTION_BODY) &&
+		   !(expect & EX_STRING_CHARACTER)) {
 			debug("Found the extra :, ignoring");
 			continue;
 		}
 
 		// When a variable goes from CAPStosmall
-		if(cls & EX_ATOM && expect & EX_VARIABLE && this.in_variable) {
+		if(cls & EX_ATOM &&
+			(expect & EX_VARIABLE || expect & EX_FUNCTION_PARAM) &&
+			this.in_variable) {
 			debug("Found atom but was expecting variable, supposing it is part of the name");
 			this.current_word += ch;
 			continue;
@@ -302,7 +313,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		} else if(cls & EX_OPCHAIN_END && !(expect & EX_STRING_CHARACTER)) {
 			if(this.current_word.length > 0)
 				dest.push(this.current_word);
-			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE;
+			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_ATOM;
 			this.current_word = '';
 			return dest;
 		} else if(cls & EX_ATOM && expect & EX_ATOM) {
@@ -348,6 +359,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		} else if((cls & EX_FUNCTION_PARAM || cls & EX_FUNCTION_PARAM_SEP) &&
 		           expect & EX_FUNCTION_PARAM) {
 			this.current_word += ch;
+			this.in_variable = true;
 			debug("CONTINUE FUNCTION PARAM: " + this.current_word);
 		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_FUNCTION_PARAM_SEP) {
 			debug("PARAMS END");
