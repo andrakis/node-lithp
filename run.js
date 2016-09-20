@@ -61,7 +61,7 @@ if(use_platform_v1) {
 	(require('./platform/v1/parser-lib')).setup(instance);
 }
 
-var code = fs.readFileSync(process.argv[2]).toString();
+var code = fs.readFileSync(file).toString();
 var result = timeCall("Parse code", () => BootstrapParser(code));
 var parsed = result[0];
 debug("Parsed: " + (0 ? parsed.toString() : inspect(parsed, {depth: null, colors: true})));
