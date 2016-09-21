@@ -71,5 +71,5 @@ if(print_times)
 parsed.importClosure(instance.functions);
 result = timeCall("Run code", () => instance.run(parsed));
 if(print_times)
-	console.log("Executed in " + result[1] + "ms");
+	console.log(instance.functioncalls + " function calls executed in " + result[1] + "ms");
 
