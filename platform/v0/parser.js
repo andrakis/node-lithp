@@ -24,24 +24,24 @@ var lithp = require(__dirname + '/../../index'),
 	VariableReference = types.VariableReference,
 	Tuple = types.Tuple;
 
-var EX_LITERAL = 1 << 0,
-    EX_OPCHAIN = 1 << 1,
-    EX_FUNCTIONCALL = 1 << 2,
+var EX_LITERAL = 1 << 0,             // Literal (1, 2, "test")
+    EX_OPCHAIN = 1 << 1,             // opening OpChain '('
+    EX_FUNCTIONCALL = 1 << 2,        // opening FunctionCall '('
     EX_NUMBER  = 1 << 3,             // Collect number (whole or float: [0-9.]+f?$)
     EX_ATOM    = 1 << 4,             // Collect atom
-    EX_VARIABLE= 1 << 5,
+    EX_VARIABLE= 1 << 5,             // Variables
     EX_STRING_CHARACTER  = 1 << 6,   // Collect character
-    EX_STRING_SINGLE = 1 << 7,   // Expecting a single quote to end '
-    EX_STRING_DOUBLE = 1 << 8,   // Expecting a double quote to end "
+    EX_STRING_SINGLE = 1 << 7,       // Expecting a single quote to end '
+    EX_STRING_DOUBLE = 1 << 8,       // Expecting a double quote to end "
     EX_PARAM_SEPARATOR   = 1 << 9,   // Expecting a space
     EX_CALL_END          = 1 << 10,  // Expected a ), end of call
     EX_OPCHAIN_END       = 1 << 11,  // Expect a ), end of opchain
-    EX_COMMENT           = 1 << 12,
-    EX_COMPILED          = 1 << 13, // Already compiled
-    EX_FUNCTION_MARKER   = 1 << 14, // #     next: Arg1,Arg2 :: (...)
-    EX_FUNCTION_PARAM    = 1 << 15, // #     this: Arg1
-    EX_FUNCTION_PARAM_SEP= 1 << 16, // #Arg1 this: ,
-    EX_FUNCTION_BODY     = 1 << 17; // #Arg1,Arg2  this: ::
+    EX_COMMENT           = 1 << 12,  // Comments
+    EX_COMPILED          = 1 << 13,  // Already compiled
+    EX_FUNCTION_MARKER   = 1 << 14,  // #     next: Arg1,Arg2 :: (...)
+    EX_FUNCTION_PARAM    = 1 << 15,  // #     this: Arg1
+    EX_FUNCTION_PARAM_SEP= 1 << 16,  // #Arg1 this: ,
+    EX_FUNCTION_BODY     = 1 << 17;  // #Arg1,Arg2  this: ::
 
 var EX_TABLE = {
 	EX_LITERAL: EX_LITERAL,
@@ -306,7 +306,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		}
 
 		if(cls & EX_OPCHAIN && !(expect & EX_STRING_CHARACTER)) {
-			this.expect = EX_OPCHAIN | EX_NUMBER | EX_LITERAL | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
+			this.expect = EX_OPCHAIN | EX_NUMBER | EX_LITERAL | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER | EX_VARIABLE;
 			this.current_word = '';
 			//dest.push([]);
 			dest.push(this.parseSection(it, []));
@@ -315,6 +315,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 				dest.push(this.current_word);
 			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_ATOM;
 			this.current_word = '';
+			this.in_variable = false;
 			return dest;
 		} else if(cls & EX_ATOM && expect & EX_ATOM) {
 			this.current_word += ch;
@@ -364,6 +365,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_FUNCTION_PARAM_SEP) {
 			debug("PARAMS END");
 			this.expect = EX_FUNCTION_BODY;
+			this.in_variable = false;
 		} else if(cls & EX_FUNCTION_BODY && expect & EX_FUNCTION_BODY) {
 			debug("FUNCTION BODY STARTS, current word: " + this.current_word);
 			this.expect = EX_OPCHAIN;
