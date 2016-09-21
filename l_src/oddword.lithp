@@ -1,0 +1,15 @@
+(
+	(def odd #S :: (
+		(var Split (split S (regex "[aeiou]" "i")))
+		(if (== 1 (& 1 (length Split))) (
+			("odd")
+		) (else (
+			("even")))
+		)
+	))
+	(def test #S :: (
+		(print "Test " (quote S) ": " (odd S))
+	))
+	(test "trees")
+	(test "brush")
+)

@@ -1,0 +1,14 @@
+% Demonstrate power function
+%
+(
+	(def pow #X,Y :: (
+		(if (== Y 1) (
+			(X)
+		) (else (
+			(* X (pow X (- Y 1)))
+		)))
+	))
+	(var A 5)
+	(var B 100)
+	(print "" A " to the power of " B ":" (pow A B))
+)

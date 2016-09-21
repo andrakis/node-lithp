@@ -1,0 +1,16 @@
+(
+	(var A 1)
+	(var B (+ A 2))
+	(var C (+ B 2))
+	(print "A:" A "B:" B "C:" C)
+	(if (== A (- C 2)) (
+		(print "Well now")
+		(if (== B (- C 1)) (
+			(print "All is well")
+		) (else (
+			(print "Oh")
+		)))
+	) (else (
+		(print "Oh, ok")
+	)))
+)

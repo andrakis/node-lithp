@@ -4,17 +4,16 @@
 	% {ok, Result} is returned. Otherwise {false} is returned.
 	(def case #Eq,Result :: (
 		(scope #Value :: (
-			% TODO: else is getting evaluated immediately, removed.
 			(if (== Eq Value) (
 				(tuple ok Result)
-			) (
+			) (else (
 				(tuple false)
-			))
+			)))
 		))
 	))
 	(var CaseTrue (case true "True"))
 	(var CaseFalse (case false "False"))
 	(var Value false)
-	(print "CaseTrue on " Value ":" (call CaseTrue Value))
-	(print "CaseFalse on " Value ":" (call CaseFalse Value))
+	(print "CaseTrue on " Value ":" (invoke (call CaseTrue Value) "toString"))
+	(print "CaseFalse on " Value ":" (invoke (call CaseFalse Value) "toString"))
  )

@@ -146,12 +146,12 @@ builtin("function-definition-native", ['Name', 'Params', 'Body'], (Name, Params,
 );
 
 builtin("replace", ['String', 'RegexString', 'ReplaceString'], (Str, RegexString, ReplaceString) =>
-	new LiteralValue(Str.replace(RegexString, ReplaceString))
+	Str.replace(RegexString, ReplaceString)
 );
 
-builtin("split", ['String', 'SplitChars'], (Str, SplitChars) =>
-	new LiteralValue(Str.split(SplitChars))
-);
+builtin("regex/1", ["Regex"], (Regex) => new RegExp(Regex));
+builtin("regex/2", ["Regex", "Flags"], (Regex, Flags) => new RegExp(Regex, Flags));
+builtin("split", ['String', 'SplitChars'], (Str, SplitChars) => Str.split(SplitChars));
 
 builtin("head", ['List'], List => new LiteralValue(List.length > 0 ? List[0][0] : []));
 builtin("tail", ['List'], List => new LiteralValue(List.length > 0 ? List.slice(1) : []));
@@ -306,7 +306,8 @@ function atomBool (A) {
 	return A == atomTrue ? true : false;
 }
 
-builtin('inspect/1', ['Object'], O => inspect(O));
+builtin('quote/1', ['String'], S => JSON.stringify(S));
+builtin('inspect/1', ['Object'], function(O) { return this.inspect([O]); });
 builtin('inspect/2', ['Object', 'Deep'], (O, Deep) => inspect(O, {depth: atomBool(Deep) ? null : undefined}));
 builtin('inspect/3', ['Object', 'Deep', 'Color'], (O, Deep, Color) => inspect(O, {depth: atomBool(Deep) ? null : undefined, colors: atomBool(Color)}));
 
@@ -344,6 +345,9 @@ builtin('invoke/*', [], Args => {
 });
 builtin('null', [], () => null);
 builtin('undefined', [], () => undefined);
+builtin('&', ['A', 'B'], (A, B) => A & B);
+builtin('|', ['A', 'B'], (A, B) => A | B);
+builtin('^', ['A', 'B'], (A, B) => A ^ B);
 
 function lib_each (chain) {
 	/**
