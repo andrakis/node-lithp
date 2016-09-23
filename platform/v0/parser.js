@@ -369,6 +369,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		} else if(cls & EX_FUNCTION_BODY && expect & EX_FUNCTION_BODY) {
 			debug("FUNCTION BODY STARTS, current word: " + this.current_word);
 			this.expect = EX_OPCHAIN;
+			this.in_variable = false;
 			dest.push(this.parseBody(it, []));
 			this.current_word = '';
 			return dest;
