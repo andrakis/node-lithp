@@ -145,84 +145,6 @@ builtin("function-definition-native", ['Name', 'Params', 'Body'], (Name, Params,
 	new LiteralValue(new FunctionDefinitionNative(Name, Params, Body))
 );
 
-builtin("replace", ['String', 'RegexString', 'ReplaceString'], (Str, RegexString, ReplaceString) =>
-	Str.replace(RegexString, ReplaceString)
-);
-
-builtin("regex/1", ["Regex"], (Regex) => new RegExp(Regex));
-builtin("regex/2", ["Regex", "Flags"], (Regex, Flags) => new RegExp(Regex, Flags));
-builtin("split", ['String', 'SplitChars'], (Str, SplitChars) => Str.split(SplitChars));
-
-builtin("head", ['List'], List => new LiteralValue(List.length > 0 ? List[0][0] : []));
-builtin("tail", ['List'], List => new LiteralValue(List.length > 0 ? List.slice(1) : []));
-
-builtin("ht", ['List'], List =>
-	new LiteralValue(List.length == 0 ? [] : [List[0], List.slice(1)])
-);
-
-builtin("index", ['List', 'Index'], (List, Index) => new LiteralValue(List[Index]));
-
-builtin("length", ['List'], List => new LiteralValue(List.length));
-
-// Non-recursive list flatten
-function flatten (List) {
-	var result = [];
-	var nodes = List.slice();
-	var node;
-
-	if(!List.length)
-		return result;
-	
-	node = nodes.pop();
-
-	do {
-		if(Array.isArray(node))
-			nodes.push.apply(nodes, node);
-		else
-			result.push(node);
-	} while (nodes.length && (node = nodes.pop()) !== undefined);
-
-	result.reverse();
-
-	return result;
-}
-
-builtin("flatten/*", [], List => flatten(List));
-
-// Call a function. This can be a JavaScript function, or one of the standard
-// Lithp FunctionDefinition or FunctionDefinitionNative classes.
-builtin("call/*", [], function(Args, State) {
-	// Create a new OpChain with the given function, set the closure
-	// variables, and return it with .call_immediate so that it takes
-	// effect straight away.
-	var Fn = Args.slice(0, 1);
-	var Params = Args.slice(1);
-	if(Fn.length == 0)
-		throw new Error('call/*: Unable to get function from args');
-	Fn = Fn[0];
-
-	var val;
-	if(typeof Fn == 'function') {
-		// TODO: What should context be?
-		// TODO: Could also transform this into a FunctionDefinitionNative
-		val = Fn.apply({}, Params);
-	} else {
-		val = this.invoke_functioncall(State, Fn, Params);
-	}
-	//console.log("call/* result:", val);
-	return val;
-});
-
-builtin("scope", ['FnDef'], (FnDef, State) => {
-	// TODO: This is somewhat ugly and is implemented in the interpreter.
-	//       It would be nice if this did not require changes to the
-	//       interpreter.
-	var newFnDef = FnDef.clone();
-	newFnDef.scoped = State;
-	//console.log("Scope, new scope is:", State.closure.getDefined(3));
-	return newFnDef;
-});
-
 builtin("recurse/*", [], function(Arguments, State) {
 	// Call the current function again with the given arguments.
 	// We do this by calling call/* with the current State.
@@ -230,21 +152,6 @@ builtin("recurse/*", [], function(Arguments, State) {
 	//       to Arguments. Allows for infinite recursion.
 	var args = [State.call(), Arguments, State];
 	return builtins["call/*"].apply(this, args);
-});
-
-builtin('try', ['Call', 'Catch'], function(Call, Catch, State) {
-	try {
-		// this refers to the running Lithp object
-		var value = this.run(Call.call_immediate());
-		return value;
-	} catch (e) {
-		// Set Exception in the closure to the exception value e
-		return Catch.call_immediate({Exception: e});
-	}
-});
-
-builtin('throw', ['Message'], (Message) => {
-	throw new Error(Message);
 });
 
 // TODO: Test:
@@ -257,9 +164,6 @@ builtin_def('catch_native', (chain) => {
 		])
 	);
 	return new OpChain(chain, new AnonymousFunction(chain, ['Exception'], fn_body));
-});
-builtin('catch', ['OpChain'], (OpChain) => {
-	return OpChain.call_immediate();
 });
 
 /** Members should be a list of tuples:
@@ -306,8 +210,6 @@ function atomBool (A) {
 	return A == atomTrue ? true : false;
 }
 
-builtin('quote/1', ['String'], S => JSON.stringify(S));
-builtin('inspect/1', ['Object'], function(O) { return this.inspect([O]); });
 builtin('inspect/2', ['Object', 'Deep'], (O, Deep) => inspect(O, {depth: atomBool(Deep) ? null : undefined}));
 builtin('inspect/3', ['Object', 'Deep', 'Color'], (O, Deep, Color) => inspect(O, {depth: atomBool(Deep) ? null : undefined, colors: atomBool(Color)}));
 
@@ -343,11 +245,6 @@ builtin('invoke/*', [], Args => {
 		throw new Error("Invoke attempted, but " + FnName + " does not refer to a function: " + typeof(Obj[FnName]));
 	return Obj[FnName].apply(Obj, Params);
 });
-builtin('null', [], () => null);
-builtin('undefined', [], () => undefined);
-builtin('&', ['A', 'B'], (A, B) => A & B);
-builtin('|', ['A', 'B'], (A, B) => A | B);
-builtin('^', ['A', 'B'], (A, B) => A ^ B);
 
 function lib_each (chain) {
 	/**
