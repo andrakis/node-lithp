@@ -1,7 +1,15 @@
+% A valid solution to a Programming Puzzle and Code Golf post:
+% http://codegolf.stackexchange.com/questions/93906/is-it-an-odd-word
+%
+% However, it is ineligible for competing, since the majority of the
+% functionality required was implemented after the challenge was posted.
 (
-	(def odd #S :: (
+	% Golfed:
+	% (def odd #S::((if (== 1 (& 1 (~ (length (split S (regex "[aeiou]" "i"))))))("odd")("even"))))
+	% Ungolfed:
+	(def odd #S::(
 		(var Split (split S (regex "[aeiou]" "i")))
-		(if (== 1 (& 1 (length Split))) (
+		(if (== 1 (& 1 (~ (length Split)))) (
 			("odd")
 		) (else (
 			("even")))
@@ -10,6 +18,10 @@
 	(def test #S :: (
 		(print "Test " (quote S) ": " (odd S))
 	))
-	(test "trees")
-	(test "brush")
+	(test "trees")    % even
+	(test "brush")    % odd
+	(test "CAts")     % odd
+	(test "Savoie")   % even
+	(test "rhythm")   % even
 )
+

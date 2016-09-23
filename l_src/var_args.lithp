@@ -1,0 +1,7 @@
+% Test functions with unlimited arguments
+(
+	(def count-args/* #Args :: (
+		(print "Args length: " (length Args))
+	))
+	(count-args foo bar yeah)
+)

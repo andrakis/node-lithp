@@ -1,0 +1,14 @@
+% Test calling functions using quoted atoms, and also
+% grabbing a currently defined function for use with
+% call/*.
+(
+	(def get-fn-by-name #Name,Arity :: (
+		% BUGGED, parsed incorrectly: (var Ref (+ (Name (+ "/" Arity))))
+		%         Seems to get an OpChain instead of the result of (+ "/" Arity)
+		(var R1 (+ Name "/"))
+		(var Ref (+ R1 Arity))
+		(get (to-string Ref))
+	))
+	('print' "+ is" (get-fn-by-name + *))
+	(call (get-fn-by-name "print" *) "Testing")
+)

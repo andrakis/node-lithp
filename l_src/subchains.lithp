@@ -1,3 +1,5 @@
+% Simple subchain test. Subchains are passed to the if/3 function and evaluated
+% if the test is Atom('true').
 (
 	(var A 5)
 	(var B 6)

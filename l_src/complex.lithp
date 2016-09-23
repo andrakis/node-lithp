@@ -1,7 +1,8 @@
+% This is a test of nested if and print states to check control flow.
 (
 	(var A 1)
-	(var B (+ A 2))
-	(var C (+ B 2))
+	(var B (+ A 1))
+	(var C (+ B 1))
 	(print "A:" A "B:" B "C:" C)
 	(if (== A (- C 2)) (
 		(print "Well now")

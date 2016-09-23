@@ -33,16 +33,20 @@ the parent language, and provide basic arithmatic, control flow, and utility
 functions. The parser provides its own additional runtime, in hand-compiled
 Lithp.
 
-Platform version 1 will re-implement the parser and most of the runtime, however it
-will all be written in Lithp and parsed by this parser. This will make it much
-easier to maintain. Platform version 0 is therefore more of a bootstrap to allow
-compilation of the basic language from source files to OpChains.
+Platform version 1 will re-implement the parser and provide additional runtime
+modules, however large parts will be written in Lithp and parsed by this parser.
+This will make it much easier to maintain.
+
+Platform version 0 is therefore more of a bootstrap to allow compilation of the
+basic language from source files to OpChains.
+
 Platform version 1 will be the intended end-user experience for using the language,
 and contain a REPL environment, compilation from source to loadable object, and
 a standard API, all implemented in the language itself (!).
 
-Because the syntax of Platform version 0 is so simple, only a few constructs need
-to be supported:
+Because the design of the BootStrap parser is so simple, error reporting is
+minimal and only a few constructs are to be supported. These are enough to
+implement all of the current examples:
 
 * Call a function and parse the parameters:
 
@@ -58,15 +62,18 @@ to be supported:
 
 * Understand the following:
 
-	:* Lowercase symbols represent atoms, unless used as the name of a function in
-	   a function call, in which case it automatically is converted into a string
-	   with the correct arity for the function call.
+	** Lowercase and most other non-alphanumeric symbols represent atoms. However,
+	   if they are the first argument in the parser's chain, it is considered to be
+	   a function call and converted to a string with the arity of parameters given
+	   to it.
 
+		'test'   -> Atom('test')
 		test     -> Atom('test')
 		foo-bar  -> Atom('foo-bar')
 		+        -> Atom('+')
 		(+ 1 2)  -> new FunctionCall("+/2", [new LiteralValue(1), new LiteralValue(2)])
 		(foo bar)-> new FunctionCall("foo/1", [Atom("bar")])
+```
 		(def multi_args/* #Args :: (do-something Args)) ->
 			new FunctionCall("def/2", [
 				new Atom("multi_args/*"),
@@ -75,30 +82,30 @@ to be supported:
 					new FunctionCall("do-something/1", [new VariableReference("Args")])
 				))
 			])
+```
 
-	:* Strings
+	** Strings
 	
 		"Test"   -> new LiteralValue("Test")
 
-	:* Numbers
+	** Numbers
 
 		1        -> new LiteralValue(1)
 		1.00     -> new LiteralValue(1.00)
-		'A'      -> new LiteralValue('A'.charCodeAt(0))
 
-	:* VariableReferences
+	** VariableReferences
 	
-		:* Variables are always uppercase
+		** Variables always start with an uppercase letter.
 
-		:* When used in set/2 and get/1:
+		** When used in set/2 and get/1:
 
 			(set Test 0) -> new FunctionCall("set/2", [
 				new VariableReference("Test"),
-				0
+				new LiteralValue(0)
 			])
 			(get Test) -> new FunctionCall("get/1", [new VariableReference("Test")])
 
-		:* When used anywhere else, automatically convert to get/1 calls:
+		** When used anywhere else, automatically convert to get/1 calls:
 		
 			(+ A 1) -> new FunctionCall("+/2", [new FunctionCall("get/1", [
 				new VariableReference("A")
@@ -106,17 +113,17 @@ to be supported:
 				new LiteralValue(1)
 			])
 
-	:* Anonymous function definitions:
+	** Anonymous function definitions:
 
-		:* Syntax:  #(Param List) :: Body
+		** Syntax:  #(Param List) :: Body
 
-		:* (Param List) is zero or more comma-separated variables (ie, start with uppercase)
+		** (Param List) is zero or more comma-separated variables (ie, start with uppercase)
 
-		:* If function name contains arity, then the atom will include the arity.
+		** If function name contains arity, then the atom will include the arity.
 
 			(def foo/* #Args :: (...))
 
-		:* Example:
+		** Example:
 
 			(def add #A,B :: ((+ A B))) ->
 

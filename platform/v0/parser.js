@@ -123,6 +123,12 @@ ParserState.prototype.classify = function(ch) {
 };
 
 ParserState.prototype.mapParam = function(P, chain, fnName) {
+	var result = this.mapParamInner(P, chain, fnName);
+	debug("mapParam(", P, ") :: ", result);
+	return result;
+};
+
+ParserState.prototype.mapParamInner = function(P, chain, fnName) {
 	if(!Array.isArray(P)) {
 		var cls = this.classify(P);
 		debug("Classified: " + GET_EX(cls));
@@ -163,8 +169,17 @@ ParserState.prototype.convert = function(chain, curr) {
 		debug("Got body for function:", body.toString());
 		return anon;
 	}
+	if(clsFirst & EX_STRING_SINGLE) {
+		// Convert to a (call (get 'FnName') Params...)
+		debug("STRING_SINGLE, convert to FunctionCall: (call/* (get/1 : " + eleFirst + " ... ");
+		eleFirst = eleFirst.slice(1, eleFirst.length - 1);
+		clsFirst = this.classify(eleFirst);
+		debug("    First element: ", eleFirst);
+		debug("    Re-Classified: ", GET_EX(clsFirst));
+	}
 	if(clsFirst & EX_ATOM) {
 		// FunctionCall
+		debug(" PARSE TO FUNCTIONCALL");
 		var params = curr.slice(1);
 		params = params.map(P => this.mapParam(P, chain, eleFirst));
 		if(params.length == 0 && this.classify(eleFirst) & EX_NUMBER) {
@@ -185,6 +200,7 @@ ParserState.prototype.convert = function(chain, curr) {
 		return newChain;
 	} else if(curr.length > 0) {
 		// Must be an OpChain
+		debug(" PARSE TO OPCHAIN");
 		var newChain = new OpChain(chain);
 		for(var i = 0; i < curr.length; i++) {
 			debug("Member " + i + " of chain: ", curr[i]);
@@ -319,7 +335,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 			return dest;
 		} else if(cls & EX_ATOM && expect & EX_ATOM) {
 			this.current_word += ch;
-			this.expect = EX_ATOM | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+			this.expect = EX_ATOM | EX_PARAM_SEPARATOR | EX_FUNCTION_MARKER | EX_OPCHAIN_END | EX_FUNCTIONCALL;
 		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_PARAM_SEPARATOR &&
 		        !(expect & EX_STRING_CHARACTER) &&
 		        !(expect & EX_FUNCTION_PARAM)) {
@@ -330,6 +346,19 @@ ParserState.prototype.parseSection = function(it, dest) {
 			this.current_word = '';
 			this.expect = EX_OPCHAIN | EX_VARIABLE | EX_NUMBER | EX_LITERAL | EX_ATOM | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
 			this.in_variable = false;
+		} else if(cls & EX_STRING_SINGLE) {
+			if(!(expect & EX_STRING_CHARACTER)) {
+				debug("START SINGLE QUOTE STRING");
+				this.expect = EX_STRING_CHARACTER | EX_STRING_SINGLE;
+				this.current_word = ch;
+			} else {
+				debug("END SINGLE QUOTE STRING");
+				this.current_word += ch;
+				if(this.current_word.length > 0)
+					dest.push(this.current_word);
+				this.expect = EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
+				this.current_word = '';
+			}
 		} else if(cls & EX_STRING_DOUBLE) {
 			if(!(expect & EX_STRING_CHARACTER)) {
 				debug("START DOUBLE QUOTE STRING");

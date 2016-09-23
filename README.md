@@ -24,6 +24,9 @@ source file. There are 3 provided in `l_src` that work with the current parser.
 	node run.js l_src/factorial.lithp
 ```
 
+You can see the internals of what the parser and interpreter are doing by passing
+the `-d` flag to run.js to enable debug mode.
+
 Design
 ======
 
@@ -35,9 +38,10 @@ virtual machine or assembly language to run your code.
 
 It also borrows from Erlang, in that it supports the following constructs:
 
-	* Tuples: {val1, val2, ...}     (tuple val1 val2 ...)
-	* Atoms: lowercase-is-atom      (atom lowercase-is-atom)
-	* Variables always start with an uppercase letter
+	* Tuples:                       {val1, val2, ...}
+	* Atoms:                        lowercase-Start-Is-Atom
+	* Quoted Atoms:                 'A quoted atom'
+	* Variables:                    StartWithUpperCase
 
 However, features such as destructive assignment are present, which differs
 from Erlang.
@@ -78,8 +82,8 @@ Lithp language itself.
 The runtime library is fairly small, aiming for a very basic but usable
 set of functions that can implement most algorithms.
 More advanced functionality is provided by additional libraries, such as
-with Platform V0 which has a much expanded runtime library building upon
-the existing runtime library.
+with Platform V1 which has functions for manipulating native Lithp types
+(for creating and filling OpChains.)
 
 Some functions are provided for readability, such as in an if construct:
 
@@ -94,7 +98,9 @@ is very terse.
 Examples
 ========
 
-The following examples are implemented in `lib/samples.js`.
+Some following examples are implemented in `lib/samples.js`.
+
+The rest of the examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
 
 It shows how the following examples are constructed for
 running in the interpreter. The file `test.js` uses the
@@ -109,8 +115,8 @@ Simple test
 
 Print a string.
 
-	 ((set Test "test")
-	  (print "Test: " Test))
+	((set Test "test")
+	 (print "Test: " Test))
 
 
 Simple function
@@ -118,8 +124,8 @@ Simple function
 
 Define a simple function and call it.
 
-	 ((def add #A,B :: ((+ A B)))
-	  (print "Add 5+10: " (add 5 10)))
+	((def add #A,B :: ((+ A B)))
+	 (print "Add 5+10: " (add 5 10)))
 
 
 Multiple functions and logic
@@ -128,7 +134,7 @@ Multiple functions and logic
 Define two functions and use comparison logic to print a message
 based on the input.
 
-	  (
+	(
 		(def is_zero#N :: ((== 0 N)))
 		(def test#N :: (
 			(if (is_zero N) (
@@ -139,7 +145,7 @@ based on the input.
 		))
 		(test 1)
 		(test 0)
-	  )
+	)
 
 A recursive function
 --------------------
@@ -147,25 +153,25 @@ A recursive function
 Define a recursive function that calculates the factorial of the
 given number, and call it.
 
-	 ((def fac #N :: (
+	((def fac #N :: (
 		(if (== 0 N) (1)
 			(else ((* N (fac (- N 1)))))
 		)
-	  ))
-	  (set Test 10)
-	  (print "factorial of " Test ": " (fac Test))
-	 )
+	))
+	(set Test 10)
+		(print "factorial of " Test ": " (fac Test))
+	)
 
 Read a file
 -----------
 
-Note: this example is implemented in `platform/v1/parser.js`, and relies on
-functions provided by Platform 1.
+Note: this example is further demonstrated in (l_src/readfile.lithp)[https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp],
+and relies on functions provided by Platform 1.
 
 Additionally, it is using the Node.js API. It will be replaced with native
 functions in the future.
 
-	 (
+	 
 		(var Fs (require "fs"))
 		(var FsReadFile (dict-get Fs "readFile"))
 		(print "readFile:" (inspect FsReadFile))
@@ -175,7 +181,7 @@ functions in the future.
 		)))
 		% You can call FsReadFile using call (a parser-specific builtin.)
 		(call FsReadFile "index.js" Our_callback)
-	 )
+	)
 
 
 Syntax Highlighting

@@ -1,5 +1,4 @@
-% Demonstrate power function
-%
+% Demonstrate a power function
 (
 	(def pow #X,Y :: (
 		(if (== Y 1) (

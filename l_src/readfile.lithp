@@ -14,9 +14,11 @@
 	% Now test using a callback and readFile
 	(var FsReadFile (dict-get Fs "readFile"))
 	(print "readFile:" (inspect FsReadFile))
+
 	% js-bridge returns a native JavaScript function that, when called, invokes
 	% the lithp interpreter with the given function definition, and sets all
-	% provided parametes.
+	% provided parametes. Allows you to provide callbacks to JavaScript
+	% functions as used below.
 	(var Our_callback (js-bridge #Err,Data :: (
 		(if (!= (null) Err) (
 			(print "Failed to read file, err:  " Err)

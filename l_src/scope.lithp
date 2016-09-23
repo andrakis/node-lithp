@@ -1,10 +1,12 @@
 % Tests variable scoping.
-%
-% Requires the -v1 switch to run.js, as it relies on Platform V1 features.
-%
+% Allows returned anonymous functions (which can be called) to retain access
+% to parameters it had when it was called.
+% Each call generates a new unique scope, parented to the scope that
+% contained the parameters. This is provides functionality similar to how
+% JavaScript closures work.
 (
-	% add/2 is a function that returns a scoped FunctionDefinition that can be
-	% called.
+	% add/1 is a function that returns a scoped FunctionDefinition also of airty
+	% that can be called to add the two numbers together.
 	(def add #A :: (
 		% scope/1 is a library function that ties the given anonymous function
 		% to the call scope it was called in, allowing variables to be retained.
