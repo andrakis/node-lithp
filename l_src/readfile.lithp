@@ -1,15 +1,19 @@
 % Demonstrate reading a file using node builtins
 %
-% Requires the -v1 switch to run.js, as it relies on Platform V1 features.
-%
 (
+	% The require/1 function requires Platform V1 functionality.
+	% This will load it if not already loaded with the '-v1' flag.
+	(platform v1)
 	(var Fs (require "fs"))
+
+	% Use the definitions table to get the path to the example file we will use.
+	(var SampleFile (+ (get-def __dirname) "/../index.js"))
 
 	% Use the readFileSync method directly
 	(var FsReadFileSync (dict-get Fs "readFileSync"))
 	(print "readFileSync:" (inspect FsReadFileSync))
 	% You can call FsReadFileSync using call/* (a parser-specific builtin.)
-	(print "Read index.js:" (call FsReadFileSync "index.js"))
+	(print "Read index.js:" (call FsReadFileSync SampleFile))
 
 	% Now test using a callback and readFile
 	(var FsReadFile (dict-get Fs "readFile"))
@@ -27,8 +31,8 @@
 			(print (invoke Data "toString"))
 		)))
 	)))
-	% You can call FsReadFile using call/* (a parser-specific builtin.)
-	(call FsReadFile "index.js" Our_callback)
+	% You can call FsReadFile using call/* (a standard builtin.)
+	(call FsReadFile SampleFile Our_callback)
 	(call FsReadFile "non-existant" Our_callback)
 )
 

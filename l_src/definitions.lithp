@@ -1,0 +1,36 @@
+% Definitions example
+%
+% Definitions allow one to set keys to value in a top level chain definition
+% dictionary, check if keys are set, get the value of a definition, and get
+% all current definitions.
+% The interpreter and runtime will set various predefined values to give code
+% information about what environment it is running in and what platform
+% libraries have been loaded.
+(
+	(print "Definitions:" (definitions))
+	(define test true)
+	(print "Definitions:" (definitions))
+	(if (defined test) (
+		(print "'test' is defined")
+	) (else (
+		(print "'test' is not defined!")
+	)))
+	(print "Value of 'test':" (get-def test))
+
+	(if (defined 'DEBUG') (
+		(print "DEBUG mode is on")
+	) (else (
+		(print "DEBUG mode is not on.")
+	)))
+
+	% Assign a callable function to a definition. This is callable by any
+	% other Lithp function, and is useful for modules that want to provide
+	% forms of control flow to scripts.
+	% Modules in general would export functions to the top level chain,
+	% similar to how the dictionary works.
+	(var MySecretValue "A secret value")
+	(var Fn # :: (MySecretValue))
+	(print "Call one: " (call Fn))
+	(define get-secret-value Fn)
+	(print "Call two: " (call (get-def get-secret-value)))
+)

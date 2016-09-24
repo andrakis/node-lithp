@@ -165,13 +165,14 @@ given number, and call it.
 Read a file
 -----------
 
-Note: this example is further demonstrated in (l_src/readfile.lithp)[https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp],
+Note: this example is further demonstrated in [l_src/readfile.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp),
 and relies on functions provided by Platform 1.
 
 Additionally, it is using the Node.js API. It will be replaced with native
 functions in the future.
 
-	 
+	(
+		% The require/1 function requires Platform V1 functionality.
 		(var Fs (require "fs"))
 		(var FsReadFile (dict-get Fs "readFile"))
 		(print "readFile:" (inspect FsReadFile))
@@ -179,7 +180,7 @@ functions in the future.
 			(print "Err:  " Err)
 			(print "Data: " Data)
 		)))
-		% You can call FsReadFile using call (a parser-specific builtin.)
+		% You can call FsReadFile using call (a standard builtin.)
 		(call FsReadFile "index.js" Our_callback)
 	)
 
