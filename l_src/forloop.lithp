@@ -1,0 +1,19 @@
+% A for loop example.
+% This functionality will be moved to a module at some point.
+(
+	(def for #List,Callback :: (
+		(var Index 0)
+		(var ForInner (scope #Head,Tail :: (
+			(print "Running callback for " Index " on " Head)
+			(call Callback Head Index)
+			(set Index (+ 1 Index))
+			(if (!= 0 (length Tail)) (
+				(call ForInner (head Tail) (tail Tail))
+			))
+		)))
+		(call ForInner (head List) (tail List))
+	))
+	(for (list 1 2 3) #Element,Index :: (
+		(print "Element at index " Index ": " Element)
+	))
+)

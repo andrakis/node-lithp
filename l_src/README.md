@@ -28,9 +28,18 @@ Current files
 
 	This is a test of nested if and print states to check control flow.
 
+* [definitions.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/definitions.lithp)
+
+	Demonstrates the top level definition directory.
+
 * [factorial.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp)
 
 	Calculate the factorial of a number using recursive function calls.
+
+* [forloop.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/forloop.lithp)
+
+	Demonstrates a for loop. This functionality will be moved into a module in the future.
+
 
 * [oddword.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/oddword.lithp)
 
@@ -56,3 +65,9 @@ Current files
 * [subchains.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/atoms.lithp)
 
 	Test out control flow.
+
+
+* [var_args.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/var_args.lithp)
+
+	Demonstrates defining arity * Lithp functions, that is functions that take any number of
+	parameters.
