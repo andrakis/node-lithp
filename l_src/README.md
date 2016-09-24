@@ -40,6 +40,9 @@ Current files
 
 	Demonstrates a for loop. This functionality will be moved into a module in the future.
 
+* [map.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/map.lithp)
+
+	Demonstrates a map call. This functionality will be moved into a module in the future.
 
 * [oddword.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/oddword.lithp)
 

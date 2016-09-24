@@ -1,0 +1,17 @@
+% Map a list with a callback.
+% This functionality will be moved to a module at some point.
+(
+	(def map #List,Callback :: (
+		(var Result (list))
+		(var MapInner (scope #Head,Tail :: (
+			(set Result (++ Result (call Callback Head)))
+			(if (!= 0 (length Tail)) (
+				(call MapInner (head Tail) (tail Tail))
+			))
+		)))
+		(call MapInner (head List) (tail List))
+		(Result)
+	))
+	(print (map (list 1 2 3) #N :: ((+ N 1))))
+	(print (map (list 1 2 3) #N :: ((* N 2))))
+)
