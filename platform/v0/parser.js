@@ -338,7 +338,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 		} else if(cls & EX_OPCHAIN_END && !(expect & EX_STRING_CHARACTER)) {
 			if(this.current_word.length > 0)
 				dest.push(this.current_word);
-			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_ATOM;
+			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_FUNCTION_MARKER | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_ATOM;
 			this.current_word = '';
 			this.in_variable = false;
 			return dest;

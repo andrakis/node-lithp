@@ -3,6 +3,9 @@
 %
 % However, it is ineligible for competing, since the majority of the
 % functionality required was implemented after the challenge was posted.
+% In fact, at the time the challenge was posted, no parser existed.
+% Approximately 10 days later the parser was finished and parsing this
+% file correctly.
 (
 	% Golfed:
 	% (def odd #S::((if (== 1 (& 1 (~ (length (split S (regex "[aeiou]" "i"))))))("odd")("even"))))
