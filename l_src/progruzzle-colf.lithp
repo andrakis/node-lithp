@@ -1,0 +1,6 @@
+% A valid solution to the programming puzzle:
+%  http://codegolf.stackexchange.com/questions/94534/progruzzle-colf
+(
+	(def f #X::((replace X (regex "([aeiou]+[^aeiou]*){1,2} [^aeiou]*") "")))
+	(print (f "brad angelina"))
+)
