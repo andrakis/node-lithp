@@ -2,30 +2,102 @@ Lithp
 =====
 
 A small Lisp-like programming language, with a very small interpreter.
+----------------------------------------------------------------------
 
-The main interpreter is just under 300 lines of sparse code (not counting
+This language borrows some ideas from Lisp (functional programming, the
+function call syntax itself) but is designed around a small interpreter to
+carry out the basic execution, and builtin library functions to provide
+control flow, function definitions, and basic arithmatic and similar
+operations.
+
+It aims to provide a basic framework as powerful as JavaScript. To this end,
+one of the current features is the abililty to import Node.js modules, call
+the imported functions passing native Lithp values, and provide a "bridge"
+function to allow functions that require JavaScript callbacks to be used with
+Lithp functions directly.
+
+The [readfile example](https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp) demonstrates all of the above features, importing the
+Node.js `fs` module, and calling `fs.readFileSync` and `fs.readFile` using a
+callback and a Lithp function to print the results.
+
+The main interpreter is just under 350 lines of sparse code (not counting
 structures and runtime library.) This size would be even lower without the
 debug statements and detailed comments.
 
-A working parser exists, known as the Bootstrap Parser or Platform V0 Parser.
-This parser is very simple and will not protect you from simple mistakes like
-too many closing brackets. The parser in Platform V1 will be designed with
-better parsing and error messages.
+Language Status
+===============
 
-See `run.js` or the next section for information on how to run some sample code.
+Version: 0.5
+------------
+
+Currently the language can run hand-compiled code or use the Bootstrap Parser
+for a fairly feature-complete compilation experience. The parser does not
+currently supports all the constructs it should - these are being corrected
+as they are found.
+
+See `run.js` or the `Running some sample code` section for information on how
+to run existing examples of Lithp code, parsed by the Bootstrap Parser.
+
+The Bootstrap Parser or Platform V0 Parser is written in JavaScript for
+quick implementation. See the `Longterm goals` section for information about
+the design of a new parser, implemented in Lithp.
+
+The Bootstrap Parser is very simple and will not protect you from simple mistakes
+like too many closing brackets. It also gets tripped up over some slight syntax
+issues, but the basic framework implemented should allow for all of these to be
+corrected.
+
+Shorterm goals
+--------------
+
+These features are presently being worked on.
+
+* A module system is being worked on. (2.5 / 6 goals reached)
+
+  * Allows scripts to import another module. This will parse and compile the
+    module in a new interpreter instance. (Implemented)
+
+  * Modules can define their own functions, call any function they want, and
+    export defined functions. (Implemented)
+
+  * Scripts that import modules add them to their function definition tree.
+
+  * Imported functions run in the new instance, retaining access to all their
+    own functions and variables. (Partially implemented)
+
+  * Scripts that call imported functions can be passed any Lithp object,
+    including anonymous functions.
+
+  * When passed anonymous functions will, like the imported module functions,
+    run in the instance of the interpreter in which they were defined. This
+    retains their access to all defined functions and variables.
+
+Longterm goals
+-------------- 
+
+These features are desired, but may be a long time coming.
+
+* Platform V1: Parser
+
+	The new native parser will feature more language features, including the ability
+	to alter the parser itself at runtime, allowing completely new features to be
+	implemented at runtime.
 
 Running some sample code
 ========================
 
-Use the file 'run.js' in the top level directory, and specify a path to a Lithp
-source file. There are 3 provided in `l_src` that work with the current parser.
+Use the file `run.js` in the top level directory, and specify a path to a Lithp
+source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
+
+To run [the factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
 
 ```
 	node run.js l_src/factorial.lithp
 ```
 
 You can see the internals of what the parser and interpreter are doing by passing
-the `-d` flag to run.js to enable debug mode.
+the `-d` flag to run.js to enable debug mode. This prints out a tree of function
+calls, allowing you to follow the interpreters call sequence.
 
 Design
 ======
@@ -33,8 +105,8 @@ Design
 The basic syntax is very Lisp-like, however it has its own runtime library
 that uses much different names, design, and implementation. For instance, the
 Lithp code is broken down in OpChains, function calls, and literal values, and
-these are used to run the program. In comparison, Lisp often uses a low level
-virtual machine or assembly language to run your code.
+these are interpreted to run the program. In comparison, Lisp implementations
+often uses a low level virtual machine or compiles your code to an executable.
 
 It also borrows from Erlang, in that it supports the following constructs:
 
@@ -42,22 +114,55 @@ It also borrows from Erlang, in that it supports the following constructs:
 	* Atoms:                        lowercase-Start-Is-Atom
 	* Quoted Atoms:                 'A quoted atom'
 	* Variables:                    StartWithUpperCase
+	* Functions include arity:      (def add/2 #A,B :: ((+ A B)))
+	                                Note that if not provided, this is
+	                                automatically added according to the
+	                                number of parameters the function takes.
+	                                All functions in the definition table
+	                                have the arity in their name.
 
 However, features such as destructive assignment are present, which differs
-from Erlang.
+from Erlang. Additionally, one may define functions with an arity of *, which
+passes all parameters in the first parameter:
 
-A standard Lithp script compiles to an OpChain, which contains function calls
-and literal values.
+	((def count_params/* #List :: ((print "You gave me " (length List) " parameters")))
+	 (count_params 1 2 3 atom "string" 'quoted atom' #N :: ("anonymous function")))
+
+Other features are available in many other languages. The prime ones of these
+is the functional programming approach. All functions return the value of the
+last executed function call, even if there are multiple function calls
+preceding it.
+
+All Lithp functions are implemented as anonymous functions, which allows you
+to assign them to variables, provide them as function arguments, and call them
+using the call/* function.
+
+Variable scoping (closures) is somewhat implemented, but none yet to liking.
+Presently, one needs to call the scope/1 function. This takes an anonymous
+function as its parameter, and returns a callable function which retains
+access to the scope in which it was defined. Ideally this would be implemented
+as a parser feature.
+
+A standard Lithp script compiles to an OpChain, which contains function calls,
+literal values, and potentially more OpChains with the same.
 
 A simple program:
 
 	((print "Hello, world!"))
 
 This is an OpChain consisting of a single function call, with a single literal
-value as a parameter. Parameters are separated by spaces.
+value as a parameter. Parameters are separated by spaces, and the function name
+appears as the first token after the opening bracket. Any function currently
+defined by builtins or using the def/2 function is callable in this way.
+
+Other functions, such as those assigned to variables, must be called with the
+call/* function.
 
 Each function call may itself have additional function calls for the values of
-the parameters. This is the meat of the language.
+the parameters. These are parsed first, and this process repeats recursively
+until all parameters for the current function call have been resolved. This
+usually involves calling intermediate functions, which repeat the same process.
+This is the meat of the language.
 
 	 ((def add #A,B :: ((+ A B)))
 	  (print "Add 5+10: " (add 5 10)))
@@ -193,3 +298,4 @@ See the directory `syntax` for Lithp syntax files.
 Presently, only EditPlus syntax files are provided. Submissions for
 syntax files for other popular editors welcome. In particular, a VI
 syntax file would be a great addition.
+

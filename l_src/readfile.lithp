@@ -12,7 +12,7 @@
 	% Use the readFileSync method directly
 	(var FsReadFileSync (dict-get Fs "readFileSync"))
 	(print "readFileSync:" (inspect FsReadFileSync))
-	% You can call FsReadFileSync using call/* (a parser-specific builtin.)
+	% You can call FsReadFileSync using call/* (a standard builtin.)
 	(print "Read index.js:" (call FsReadFileSync SampleFile))
 
 	% Now test using a callback and readFile
