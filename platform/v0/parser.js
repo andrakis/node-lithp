@@ -254,6 +254,7 @@ ParserState.prototype.parseBody = function(it, dest) {
 var characters = 0;
 ParserState.prototype.parseSection = function(it, dest) {
 	var ch;
+	var self = this;
 
 	function ignore_line () {
 	}
@@ -298,7 +299,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 				return ch;
 			chCode = ch.charCodeAt(0);
 		}
-		if(ch == '%' && !(expect & EX_STRING_SINGLE || expect & EX_STRING_DOUBLE)) {
+		if(ch == '%' && !(self.expect & EX_STRING_CHARACTER)) {
 			// Comment and not in speech, ignore this line.
 			// Must keep running in a loop, in case there are more
 			// comments.
