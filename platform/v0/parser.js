@@ -251,19 +251,49 @@ ParserState.prototype.parseBody = function(it, dest) {
 	return chain;
 };
 
+var characters = 0;
 ParserState.prototype.parseSection = function(it, dest) {
 	var ch;
+
+	function ignore_line () {
+	}
 
 	// Move to the next valid character.
 	// Skips newlines, tabs, and also strips comment lines.
 	function moveNext () {
 		var expect = this.expect;
 		var ch = it.next();
+		function ignore_line () {
+			while(chCode != 10) {
+				ch = it.next();
+				characters++;
+				if(ch === undefined)
+					return ch;
+				chCode = ch.charCodeAt(0);
+			}
+			ch = it.next();
+			characters++;
+			chCode = ch.charCodeAt(0);
+			if(chCode == 13) {
+				ch = it.next();
+				characters++;
+			}
+		}
+		if(characters == 0 && ch == '#') {
+			ch = it.next();
+			if(ch == '!') {
+				// Shebang, ignore line
+				ignore_line();
+			} else
+				throw new Error('Unexpected token and not shebang');
+		}
+		characters++;
 		if(ch === undefined)
 			return ch;
 		var chCode = ch.charCodeAt(0);
 		while(chCode == 10 || chCode == 9 || chCode == 13) {
 			ch = it.next();
+			characters++;
 			if(ch === undefined)
 				return ch;
 			chCode = ch.charCodeAt(0);
@@ -274,16 +304,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 			// comments.
 			while(ch == '%') {
 				parser_debug("COMMENT");
-				while(chCode != 10) {
-					ch = it.next();
-					if(ch === undefined)
-						return ch;
-					chCode = ch.charCodeAt(0);
-				}
-				ch = it.next();
-				chCode = ch.charCodeAt(0);
-				if(chCode == 13)
-					ch = it.next();
+				ignore_line();
 			}
 		}
 		return ch;
