@@ -374,7 +374,13 @@ Syntax Highlighting
 
 See the directory `syntax` for Lithp syntax files.
 
-Presently, only EditPlus syntax files are provided. Submissions for
-syntax files for other popular editors welcome. In particular, a VI
-syntax file would be a great addition.
+The following syntax files are provided:
 
+* EditPlus
+
+   Standard EditPlus syntax file. Seems to work correctly.
+
+* VIM
+
+   Based upon the Lisp syntax file. The author's understanding of VIM syntax files
+   is not very good, hence it doesn't do everything correctly.
