@@ -175,6 +175,8 @@ builtin_def('catch_native', (chain) => {
 builtin('dict/*', [], Members => {
 	var Dict = {};
 	Members.forEach(Member => {
+		if(Member.constructor === LiteralValue)
+			Member = Member.value;
 		if(Member.constructor !== Tuple) {
 			throw new Error('dict expects a list of tuples, got' + inspect(Member));
 		}
@@ -184,9 +186,7 @@ builtin('dict/*', [], Members => {
 		var key = Member[0];
 		var value = Member[1];
 		if(key && key.type == 'Atom')
-			value = key.name;
-		if(typeof key != 'string')
-			throw new Error('dict expects an atom or string for tuple initial value, got: ' + inspect(value));
+			key = key.name;
 		Dict[key] = value;
 	});
 	return Dict;
