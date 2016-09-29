@@ -1,0 +1,12 @@
+% Demonstrates using extension platforms.
+%
+% Extension platforms add new builtin functions in JavaScript.
+% See the example extension in ext/index.js
+(
+	% This loads the file ext/index.js as a platform library.
+	% You could specify other names or paths, but if they contain
+	% uppercase letters you should quote the name.
+	(platform ext)
+	% (platform "ext")   % equivalent to above
+	(print "Test count: " (count-params 1 2 3))
+)
