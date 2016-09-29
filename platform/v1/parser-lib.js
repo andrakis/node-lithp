@@ -40,10 +40,13 @@ exports.test = (lithp) => {
 };
 
 exports.setup = function(lithp) {
+	var count = 0;
 	for(var k in builtins) {
 		lithp.builtin(k, builtins[k].params, builtins[k].body);
+		count++;
 	}
 	// TODO: import functions from lib_parser_switch
+	return count;
 };
 
 // Used to instantiate classes when the number of parameters it not

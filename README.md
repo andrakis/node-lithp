@@ -27,13 +27,17 @@ debug statements and detailed comments.
 Language Status
 ===============
 
-Version: 0.5
+Version: 0.6
 ------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
 for a fairly feature-complete compilation experience. The parser does not
 currently supports all the constructs it should - these are being corrected
 as they are found.
+
+Modules are supported, however currently no standard library is provided in one.
+Instead, see the [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) example for how functions may be defined, exported,
+and imported.
 
 See `run.js` or the `Running some sample code` section for information on how
 to run existing examples of Lithp code, parsed by the Bootstrap Parser.
@@ -47,23 +51,39 @@ like too many closing brackets. It also gets tripped up over some slight syntax
 issues, but the basic framework implemented should allow for all of these to be
 corrected.
 
-Shorterm goals
---------------
+Implemented milestones
+----------------------
 
-These features are presently being worked on.
+* BootStrap Parser
 
-* A module system is being worked on. (2.5 / 6 goals reached)
+  * This basic parser, written in JavaScript, is able to convert scripts to the
+    OpChains the interpreter needs.
 
-  * Allows scripts to import another module. This will parse and compile the
-    module in a new interpreter instance. (Implemented)
+  * It is designed to be powerful enough to parse enough Lithp code with which
+    to implement a better parser. To this end, there are numerous [examples](https://github.com/andrakis/node-lithp/tree/master/l_src)
+    demonstrating the language and what the parser is capable of parsing.
+
+  * It is considered feature complete. Only bugfixes are to be implemented.
+    (This does include the bug that "\n" is not parsed correctly.)
+
+  * Future parsing work is to be done on the Platform V1 parser, implemented
+    in Lithp and parsed by this parser. This should make maintenance and enhancements
+    easier to implement.
+
+* Module system
+
+  * Allows scripts to import another module. Imported module is parsed by
+    the BootStrap parser and all functions run in their own instance of Lithp.
+
+  * No standard module library is currently provided. This is a short term goal.
 
   * Modules can define their own functions, call any function they want, and
-    export defined functions. (Implemented)
+    export defined functions.
 
   * Scripts that import modules add them to their function definition tree.
 
   * Imported functions run in the new instance, retaining access to all their
-    own functions and variables. (Partially implemented)
+    own functions and variables.
 
   * Scripts that call imported functions can be passed any Lithp object,
     including anonymous functions.
@@ -71,6 +91,22 @@ These features are presently being worked on.
   * When passed anonymous functions will, like the imported module functions,
     run in the instance of the interpreter in which they were defined. This
     retains their access to all defined functions and variables.
+
+
+Short term goals
+----------------
+
+* Implement a standard library of functions written in Lithp and available
+  as runtime modules. These will be automatically imported, and may replace
+  some inbuilt functions.
+
+* Enhance import/1 to search a set of module paths, allowing for greater
+  flexibility. Presently your best bet is to calculate the full path to
+  the module desired using the inbuilt `__dirname` definition.
+
+* The language is considered powerful enough and feature complete that
+  personal work has begun on new projects using Lithp as their base language.
+  This will likely uncover new things to fix or improve.
 
 Longterm goals
 -------------- 
@@ -89,7 +125,7 @@ Running some sample code
 Use the file `run.js` in the top level directory, and specify a path to a Lithp
 source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
 
-To run [the factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
+To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
 
 ```
 	node run.js l_src/factorial.lithp
@@ -99,6 +135,10 @@ You can see the internals of what the parser and interpreter are doing by passin
 the `-d` flag to run.js to enable debug mode. This prints out a tree of function
 calls, allowing you to follow the interpreters call sequence.
 
+Note that since imported functions run in their own instance, the debug output will
+change slightly to include the instance id of the interpreter handling the function
+calls.
+
 Design
 ======
 
@@ -106,9 +146,9 @@ The basic syntax is very Lisp-like, however it has its own runtime library
 that uses much different names, design, and implementation. For instance, the
 Lithp code is broken down in OpChains, function calls, and literal values, and
 these are interpreted to run the program. In comparison, Lisp implementations
-often uses a low level virtual machine or compiles your code to an executable.
+often use a low level virtual machine or compiles your code to an executable.
 
-It also borrows from Erlang, in that it supports the following constructs:
+It also borrows some core ideas from Erlang:
 
 	* Tuples:                       {val1, val2, ...}
 	* Atoms:                        lowercase-Start-Is-Atom
@@ -120,25 +160,39 @@ It also borrows from Erlang, in that it supports the following constructs:
 	                                number of parameters the function takes.
 	                                All functions in the definition table
 	                                have the arity in their name.
+	* Modules can export functions: (export add/2 divide/2)
+	* Scripts can import modules:   (import "lib")
+	                                Note that Erlang expects a list of function
+	                                arity definitions for importing, whereas
+	                                all exported functions are imported here.
+
 
 However, features such as destructive assignment are present, which differs
-from Erlang. Additionally, one may define functions with an arity of *, which
+from Erlang. A number of other useful features such as pattern matching,
+list comprehension, binaries, `module:function` calls, and tail recursion
+are not implemented. Some of these can be implemented as library functions,
+and others could be implemented by an improved parser and builtin library.
+
+Additionally, one may define functions with an arity of *, which
 passes all parameters in the first parameter:
 
 	((def count_params/* #List :: ((print "You gave me " (length List) " parameters")))
 	 (count_params 1 2 3 atom "string" 'quoted atom' #N :: ("anonymous function")))
 
-Other features are available in many other languages. The prime ones of these
+Other features are available in many other languages. The prime one of these
 is the functional programming approach. All functions return the value of the
 last executed function call, even if there are multiple function calls
 preceding it.
 
 All Lithp functions are implemented as anonymous functions, which allows you
 to assign them to variables, provide them as function arguments, and call them
-using the call/* function.
+using the `call` function. The builtin `def` function adds anonymous functions
+to a closure table allowing them to be called at runtime by name. All builtins
+are also added to this table, making them indistuinguisable from user defined
+functions.
 
 Variable scoping (closures) is somewhat implemented, but none yet to liking.
-Presently, one needs to call the scope/1 function. This takes an anonymous
+Presently, one needs to call the `scope/1` function. This takes an anonymous
 function as its parameter, and returns a callable function which retains
 access to the scope in which it was defined. Ideally this would be implemented
 as a parser feature.
@@ -200,20 +254,45 @@ In this case, else is just a function that calls the given function chain.
 It could be ommitted, but it provides better readability in a language that
 is very terse.
 
+Modules
+=======
+
+Modules allow functions from one script to be exported to another script.
+
+An example is provided, consisting of a [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module_lib.lithp) and a [script](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) to call it.
+
+The module is a standard Lithp script that contains calls to export/* to
+note symbols to export:
+
+	% lib.lithp
+	((def add #A,B :: ((+ A B)))
+	 (export add/2))
+
+A different Lithp script may then use import/1 to bring all exported
+definitions into the running script's closure:
+
+	% main.lithp
+	((import "lib")
+	 (print "2+2:" (add 2 2)))
+
+However, a key point is that imported functions run in a different instance
+of the interpreter, allowing them to perform their own runtime logic completely
+independent of the script that imported it.
+
+Since variables and function calls are resolved prior to calling a function, one
+may call an imported function and provide it parameters and callbacks native to
+the a different instance of the Lithp interpreter than the module.
+
+To put it another way, module functions run in their own instance, but you can pass
+them any usual value, including callbacks that retain access to defined values.
+
 Examples
 ========
 
-Some following examples are implemented in `lib/samples.js`.
+The main examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
 
-The rest of the examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
-
-It shows how the following examples are constructed for
-running in the interpreter. The file `test.js` uses the
-recursive factorial example.
-
-To see further into the details of the interpreter, edit
-the file `lib/lithp.js` and set the `debug` flag to true.
-The output will include function calls and stack depth.
+Some following examples are implemented in `lib/samples.js`, however these are hand
+compiled and outdated.
 
 Simple test
 -----------

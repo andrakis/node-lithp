@@ -1,0 +1,31 @@
+% Test importing a module into the current closure.
+(
+	% Calculate correct path to the module, module_lib.
+	% The .lithp extension is not required.
+	(var Path (+ (get-def __dirname) "/module_lib"))
+	(print "Path to module-lib:" Path)
+
+	% This brings all exported module functions into the current scope.
+	(import Path)
+
+	% Call a module function.
+	(print "Add 2+2:" (add 2 2))
+
+	% Use a local variable to demonstrate module scoping.
+	(var Add5 (add 5))
+	(print "Add 5+2:" (call Add5 2))
+
+	% Call a module function that returns a module local variable value to
+	% demonstrate module scoping further.
+	(print "Module value:" (getMyValue))
+
+	% Call a function by providing a callback. This callback retains access
+	% to the current script scope, allowing it to refer to currently defined
+	% variables and functions.
+	(var MyValue 1)
+	(print "Call with two:" (callWith2 #Two :: ((+ MyValue Two))))
+
+	% This function is defined in the module, but not exported.
+	% Uncommenting the following line would cause the script to crash:
+	%(private_function 4 2)
+)

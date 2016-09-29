@@ -1,0 +1,33 @@
+% This is an example module, designed to be used with module.lithp.
+(
+	% Load platform v1, if only to demonstrate it.
+	% None of the functions here require platform v1.
+	(platform v1)
+
+	% Define some functions to export
+	(def add #A :: (
+		(scope #B :: ((+ A B)))
+	))
+	(def add #A,B :: ((+ A B)))
+
+	% Export desired functions
+	(export add/1 add/2)
+
+	% Define a local variable to demonstrate correct scoping.
+	(var MyValue 1)
+	(def getMyValue # :: (MyValue))
+
+	% This example takes a function, and adds a local variable to it.
+	% The file module.lithp demonstrates that variables correctly
+	% resolve.
+	(var Two 2)
+	(def callWith2 #Fn :: ((call Fn Two)))
+
+	% Export our two scoping functions.
+	(export getMyValue/0 callWith2/1)
+
+	% Note that any function not exported will not be available to
+	% the module importing. Only functions specified to export will
+	% be exported.
+	(def private_function #A,B :: ((- A B)))
+)

@@ -7,6 +7,8 @@
  * See 'run.js' (in the top level directory) for a working usage of this parser.
  */
 
+// TODO: Handle escape sequences in strings. Presently, "\n" does not work.
+
 var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),
@@ -87,6 +89,7 @@ function ParserState (parent) {
 	this.expect = EX_OPCHAIN;
 	this.depth = 0;
 	this.in_variable = false;
+	this.in_atom = false;
 	this.quote_type = undefined;
 }
 
@@ -325,17 +328,26 @@ ParserState.prototype.parseSection = function(it, dest) {
 			continue;
 		}
 
+		// When an atom goes from smallToCaps
+		if(cls & EX_VARIABLE && expect & EX_ATOM && this.in_atom) {
+			parser_debug("Found variable but was expecting atom, supposing it is part of the name");
+			this.current_word += ch;
+			continue;
+		}
+
 		// Has the character been classified as something we are expecting?
 		if(!(cls & expect)) {
 			throw new Error("Unexpected " + GET_EX(cls) + ", was expecting: " + GET_EX(this.expect));
 		}
 
 		if(cls & EX_OPCHAIN && !(expect & EX_STRING_CHARACTER)) {
+			// Open an Opchain
 			this.expect = EX_OPCHAIN | EX_NUMBER | EX_LITERAL | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER | EX_VARIABLE;
 			this.current_word = '';
 			//dest.push([]);
 			dest.push(this.parseSection(it, []));
 		} else if(cls & EX_OPCHAIN_END && !(expect & EX_STRING_CHARACTER)) {
+			// Close an OpChain
 			if(this.current_word.length > 0)
 				dest.push(this.current_word);
 			this.expect = EX_OPCHAIN | EX_OPCHAIN_END | EX_FUNCTION_MARKER | EX_NUMBER | EX_STRING_SINGLE | EX_STRING_DOUBLE | EX_VARIABLE | EX_ATOM;
@@ -343,11 +355,14 @@ ParserState.prototype.parseSection = function(it, dest) {
 			this.in_variable = false;
 			return dest;
 		} else if(cls & EX_ATOM && expect & EX_ATOM) {
+			// Continue an atom
 			this.current_word += ch;
+			this.in_atom = true;
 			this.expect = EX_ATOM | EX_PARAM_SEPARATOR | EX_FUNCTION_MARKER | EX_OPCHAIN_END | EX_FUNCTIONCALL;
 		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_PARAM_SEPARATOR &&
 		        !(expect & EX_STRING_CHARACTER) &&
 		        !(expect & EX_FUNCTION_PARAM)) {
+			// Space not in string, param separator
 			parser_debug("SEPARATOR");
 			if(this.current_word.length > 0) {
 				dest.push(this.current_word);
@@ -355,7 +370,9 @@ ParserState.prototype.parseSection = function(it, dest) {
 			this.current_word = '';
 			this.expect = EX_OPCHAIN | EX_VARIABLE | EX_NUMBER | EX_LITERAL | EX_ATOM | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
 			this.in_variable = false;
+			this.in_atom = false;
 		} else if(cls & EX_STRING_SINGLE && this.quote_type != '"') {
+			// Start or end a single quote string, if not already in a double quote string
 			if(!(expect & EX_STRING_CHARACTER)) {
 				parser_debug("START SINGLE QUOTE STRING");
 				this.expect = EX_STRING_CHARACTER | EX_STRING_SINGLE;
@@ -371,6 +388,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 				this.quote_type = undefined;
 			}
 		} else if(cls & EX_STRING_DOUBLE && this.quote_type != "'") {
+			// Start or end a double quote string, if not already in a single quote string
 			if(!(expect & EX_STRING_CHARACTER)) {
 				parser_debug("START DOUBLE QUOTE STRING");
 				this.expect = EX_STRING_CHARACTER | EX_STRING_DOUBLE;
@@ -386,25 +404,31 @@ ParserState.prototype.parseSection = function(it, dest) {
 				this.quote_type = undefined;
 			}
 		} else if(cls & EX_STRING_CHARACTER && expect & EX_STRING_CHARACTER) {
+			// Continue string character reading
 			this.current_word += ch;
 		} else if(cls & EX_VARIABLE && expect & EX_VARIABLE) {
+			// Start or continue variable
 			this.in_variable = true;
 			this.current_word += ch;
 			this.expect = EX_VARIABLE | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
 		} else if(cls & EX_NUMBER && expect & EX_NUMBER) {
+			// Start or continue number
 			this.current_word += ch;
 			this.expect = EX_NUMBER | EX_PARAM_SEPARATOR | EX_OPCHAIN_END;
 		} else if(cls & EX_FUNCTION_MARKER && expect & EX_FUNCTION_MARKER) {
+			// Start or begin function
 			parser_debug("BEGIN FUNCTION MARKER");
 			// Current: #
 			// Next: Arg1[,Arg2] :: Ops
 			this.expect = EX_FUNCTION_PARAM | EX_FUNCTION_PARAM_SEP | EX_FUNCTION_BODY | EX_PARAM_SEPARATOR;
 		} else if((cls & EX_FUNCTION_PARAM || cls & EX_FUNCTION_PARAM_SEP) &&
 		           expect & EX_FUNCTION_PARAM) {
+			// Continue reading function parameters
 			this.current_word += ch;
 			this.in_variable = true;
 			parser_debug("CONTINUE FUNCTION PARAM: " + this.current_word);
 		} else if(cls & EX_PARAM_SEPARATOR && expect & EX_FUNCTION_PARAM_SEP) {
+			// Function parameters end, body starts soon
 			parser_debug("PARAMS END");
 			this.expect = EX_FUNCTION_BODY;
 			this.in_variable = false;
@@ -437,42 +461,3 @@ function BootstrapParser (code) {
 
 exports.BootstrapParser = BootstrapParser;
 
-var code = `(
-	(print "Hello, world!")
-	(var A 0)
-	(if (== A 0) (
-		(print "A is zero")
-		(print ":)")
-	) (else (
-		(print "A is not zero, it is " A)
-		(print ":(")
-	)))
-)`;
-
-code = `(
-	(def equal #A,B :: ((== A B)))
-	(print "Equal: " (equal 0 1))
-)`
-
-if(1)code = `(
-	(def add #A,B :: ((+ A B)))
-	(print "Add 5+10: " (add 5 10))
-)`;
-
-code = `
-	 ((def fac #N :: (
-	    (if (== 0 N) (
-			(1)
-		) ((else (
-			(* N (fac (- N 1)))
-		))))
-	  ))
-	  (var Test 10)
-	  (print "factorial of " Test ": " (fac Test))
-	 )
-`;
-
-if(0) code = `(
-	(def test # :: (("Hello")))
-	(print "Test: " (test))
-)`;

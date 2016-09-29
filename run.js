@@ -74,6 +74,14 @@ if(print_times)
 	console.error("Parsed in " + result[1] + "ms");
 
 result = timeCall("Run code", () => instance.run(parsed));
-if(print_times)
-	process.stderr.write(instance.functioncalls + " function calls executed in " + result[1] + "ms\n");
+if(print_times) {
+	var totalCalls = 0;
+	var info = [];
+	var instances = get_lithp_instances();
+	for(var id in instances) {
+		totalCalls += instances[id].functioncalls;
+		info.push("lithp[" + id + "]: " + instances[id].functioncalls);
+	}
+	console.error(totalCalls + " function calls executed in " + result[1] + "ms   across: [" + info.join(', ') + "]");
+}
 
