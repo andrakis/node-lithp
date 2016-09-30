@@ -54,6 +54,8 @@ if(file == "") {
 	process.exit(1);
 }
 
+global.lithp_print_times = print_times;
+
 if(use_debug)
 	lithp.set_debug_flag(true);
 

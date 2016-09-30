@@ -1,8 +1,8 @@
 Lithp
 =====
 
-A small Lisp-like programming language, with a very small interpreter.
-----------------------------------------------------------------------
+A small Lisp-like programming language, with a small interpreter.
+-----------------------------------------------------------------
 
 This language borrows some ideas from Lisp (functional programming, the
 function call syntax itself) but is designed around a small interpreter to
@@ -20,7 +20,7 @@ The [readfile example](https://github.com/andrakis/node-lithp/blob/master/l_src/
 Node.js `fs` module, and calling `fs.readFileSync` and `fs.readFile` using a
 callback and a Lithp function to print the results.
 
-The main interpreter is just under 350 lines of sparse code (not counting
+The main interpreter is around 350 lines of sparse code (not counting
 structures and runtime library.) This size would be even lower without the
 debug statements and detailed comments.
 
