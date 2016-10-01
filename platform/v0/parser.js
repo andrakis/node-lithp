@@ -138,13 +138,25 @@ ParserState.prototype.mapParam = function(P, chain, fnName) {
 	return result;
 };
 
+// Runs a series of replace actions over a string to replace escape sequences.
+function parseString (str) {
+	return str.replace(/\\(.)/g, function(FullMatch, Escape)  {
+		switch(Escape) {
+			case 'n': return "\n";
+			case 'r': return "\r";
+			case '\\': return "\\";
+			default: throw new Error('Unknown escape sequence: ' + Escape);
+		}
+	});
+}
+
 ParserState.prototype.mapParamInner = function(P, chain, fnName) {
 	if(!Array.isArray(P)) {
 		var cls = this.classify(P);
 		parser_debug("Classified: " + GET_EX(cls));
-		if(cls & EX_STRING_DOUBLE || cls & EX_STRING_SINGLE)
-			return new LiteralValue(P.slice(1, P.length - 1));
-		else if(cls & EX_VARIABLE) {
+		if(cls & EX_STRING_DOUBLE || cls & EX_STRING_SINGLE) {
+			return new LiteralValue(parseString(P.slice(1, P.length - 1)));
+		} else if(cls & EX_VARIABLE) {
 			if(fnName == 'get' || fnName == 'set' || fnName == 'var')
 				return new VariableReference(P);
 			return new FunctionCall("get/1", [new VariableReference(P)]);
@@ -273,11 +285,11 @@ ParserState.prototype.parseSection = function(it, dest) {
 				chCode = ch.charCodeAt(0);
 			}
 			ch = it.next();
-			characters++;
 			chCode = ch.charCodeAt(0);
-			if(chCode == 13) {
-				ch = it.next();
+			while(chCode == 10 || chCode == 13) {
 				characters++;
+				ch = it.next();
+				chCode = ch.charCodeAt(0);
 			}
 		}
 		if(characters == 0 && ch == '#') {
