@@ -64,11 +64,10 @@ function error (message) { throw new Error(message); };
  * Implement all of the native types used by the interpreter so that a
  * parser written in Lithp can construct a parsing tree for the interpreter.
  */
-builtin("atom", ["Str"], Str => new LiteralValue(Atom(Str)));
-
 builtin("tuple/*", [], function (List) {
-	return new LiteralValue(newClass.apply(this, [Tuple].concat(List)));
+	return newClass.apply(this, [Tuple].concat(List));
 });
+
 
 // Perform an Object comparison
 builtin("equal", ['A', 'B'], (A, B) =>
@@ -234,19 +233,6 @@ builtin('js-bridge/1', ['FunctionDefinition'], function(FnDef, State) {
 			return self.invoke_functioncall(State, FnDef, Args);
 		}
 	)(this);
-});
-// Invoke a JavaScript function using apply.
-builtin('invoke/*', [], Args => {
-	if(Args.length < 2)
-		throw new Error("Invoke requires object and function name at least");
-	var Obj = Args[0];
-	var FnName = Args[1];
-	var Params = Args.slice(2);
-	if(!Obj[FnName])
-		throw new Error("Invoke attempted, but " + FnName + " does not exist in: " + inspect(Obj));
-	if(typeof Obj[FnName] != 'function')
-		throw new Error("Invoke attempted, but " + FnName + " does not refer to a function: " + typeof(Obj[FnName]));
-	return Obj[FnName].apply(Obj, Params);
 });
 
 function lib_each (chain) {
