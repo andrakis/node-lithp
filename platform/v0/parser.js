@@ -155,7 +155,11 @@ ParserState.prototype.mapParamInner = function(P, chain, fnName) {
 		var cls = this.classify(P);
 		parser_debug("Classified: " + GET_EX(cls));
 		if(cls & EX_STRING_DOUBLE || cls & EX_STRING_SINGLE) {
-			return new LiteralValue(parseString(P.slice(1, P.length - 1)));
+			var parsed = parseString(P.slice(1, P.length - 1)); 
+			if(cls & EX_STRING_DOUBLE)
+				return new LiteralValue(parsed);
+			else if(cls & EX_STRING_SINGLE)
+				return Atom(parsed);
 		} else if(cls & EX_VARIABLE) {
 			if(fnName == 'get' || fnName == 'set' || fnName == 'var')
 				return new VariableReference(P);
@@ -164,8 +168,6 @@ ParserState.prototype.mapParamInner = function(P, chain, fnName) {
 			return new LiteralValue(parseInt(P));
 		else if(cls & EX_ATOM)
 			return Atom(P);
-		else
-			throw new Error("Unable to map parameter: " + inspect(P));
 	} else {
 		return this.convert(chain, P);
 	}

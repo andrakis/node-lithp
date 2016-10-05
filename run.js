@@ -79,11 +79,12 @@ result = timeCall("Run code", () => instance.run(parsed));
 if(print_times) {
 	var totalCalls = 0;
 	var info = [];
-	var instances = get_lithp_instances();
-	for(var id in instances) {
-		totalCalls += instances[id].functioncalls;
-		info.push("lithp[" + id + "]: " + instances[id].functioncalls);
+	var lithp_instances = get_lithp_instances();
+	for(var id in lithp_instances) {
+		var i = lithp_instances[id];
+		totalCalls += i.functioncalls;
+		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
 	}
-	console.error(totalCalls + " function calls executed in " + result[1] + "ms   across: [" + info.join(', ') + "]");
+	console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
 }
 
