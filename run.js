@@ -11,6 +11,7 @@ var util = require('util'),
     inspect = util.inspect;
 var lithp = require('./.'),
     Lithp = lithp.Lithp,
+    Atom = lithp.Types.Atom,
     debug = lithp.debug;
 
 var BootstrapParser = require('./platform/v0/parser').BootstrapParser;
@@ -26,12 +27,17 @@ function show_help () {
 	console.error("  " + process.argv[1] + " filename [flags]");
 	console.error("Available flags:");
 	console.error("    -d              Enable Lithp debug mode");
+	console.error("    -Dname[=Value]  Define symbol name. If Value not given,");
+	console.error("                    defined as true.");
 	console.error("    -v1             Load the Platform V1 library");
 	console.error("    -t              Print times (parse and run times)");
 	console.error("                    to stderr.");
 }
 
+var defs = {};
+
 args.forEach(A => {
+	var matches;
 	if(A.match(/^-d(ebug)?$/))
 		use_debug = true;
 	else if(A.match(/^-v1$/))
@@ -41,7 +47,14 @@ args.forEach(A => {
 		process.exit(3);
 	} else if(A.match(/^-t(imes)?$/))
 		print_times = true;
-	else if(file == "")
+	else if((matches = A.match(/-D[A-Za-z-_]+(=.*$)?/g))) {
+		matches.forEach(Def => {
+			var m = A.match(/-D([A-Za-z-_]+)(?:=(.*$))?/);
+			var name = m[1];
+			var value = Atom(m[2] || 'true');
+			defs[name] = value;
+		});
+	} else if(file == "")
 		file = A;
 	else {
 		console.error("Unknown option: " + A + "");
@@ -71,6 +84,10 @@ var code = fs.readFileSync(file).toString();
 var result = timeCall("Parse code", () => BootstrapParser(code, file));
 var parsed = result[0];
 instance.setupDefinitions(parsed, file);
+for(var name in defs) {
+	debug("Defining '" + name + "' as '" + defs[name] + "'");
+	instance.Define(parsed, name, defs[name]);
+}
 debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, colors: true})));
 if(print_times)
 	console.error("Parsed in " + result[1] + "ms");
