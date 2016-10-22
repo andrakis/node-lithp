@@ -1,10 +1,22 @@
 #!/usr/bin/env node
 /**
+ * vim: set syntax=javascript:
+ *
  * Parse and run a file
  *
  * Currently uses Platform V0 Bootstrap parser.
- * Supports the following flags
+ * Supports the following flags:
+ *   -d                     Enable Lithp debug mode.
+ *   -p                     Enable bootstrap parser debug mode.
+ *   -DNAME[=atom]          Define symbol name. If value not given,
+ *                          defined as true. Always an atom.
+ *   -t                     Print times (parse and run times)
+ *   -v1                    (Obsolete) Load PlatformV1 library.
+ *                          No longer used because platform/1 gives same
+ *                          behaviour at run time.
  */
+
+"use strict";
 
 var fs = require('fs');
 var util = require('util'),
@@ -19,6 +31,7 @@ var BootstrapParser = require('./platform/v0/parser').BootstrapParser;
 var args = process.argv.slice(2);
 var file = "";
 var use_debug = false;
+var use_parser_debug = false;
 var use_platform_v1 = false;
 var print_times = false;
 
@@ -27,9 +40,9 @@ function show_help () {
 	console.error("  " + process.argv[1] + " filename [flags]");
 	console.error("Available flags:");
 	console.error("    -d              Enable Lithp debug mode");
+	console.error("    -p              Enable bootstrap parser debug mode");
 	console.error("    -Dname[=Value]  Define symbol name. If Value not given,");
 	console.error("                    defined as true.");
-	console.error("    -v1             Load the Platform V1 library");
 	console.error("    -t              Print times (parse and run times)");
 	console.error("                    to stderr.");
 }
@@ -38,6 +51,8 @@ args.forEach(A => {
 	var matches;
 	if(A.match(/^-d(ebug)?$/))
 		use_debug = true;
+	else if(A.match(/^-p$/))
+		use_parser_debug = true;
 	else if(A.match(/^-v1$/))
 		use_platform_v1 = true;
 	else if(A.match(/^-(h|-help)$/)) {
@@ -70,6 +85,8 @@ global.lithp_print_times = print_times;
 
 if(use_debug)
 	lithp.set_debug_flag(true);
+if(use_parser_debug)
+	global._lithp.set_parser_debug(true);
 
 var instance = new Lithp();
 if(use_platform_v1) {
@@ -98,5 +115,6 @@ if(print_times) {
 		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
 	}
 	console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
+	console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
 }
 

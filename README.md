@@ -24,11 +24,91 @@ The main interpreter is around 350 lines of sparse code (not counting
 structures and runtime library.) This size would be even lower without the
 debug statements and detailed comments.
 
+Language Examples
+=================
+
+The main examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
+
+Some following examples are implemented in `lib/samples.js`, however these are hand
+compiled and outdated.
+
+Simple test
+-----------
+
+Print a string.
+
+	((set Test "test")
+	 (print "Test: " Test))
+
+
+Simple function
+---------------
+
+Define a simple function and call it.
+
+	((def add #A,B :: ((+ A B)))
+	 (print "Add 5+10: " (add 5 10)))
+
+
+Multiple functions and logic
+----------------------------
+
+Define two functions and use comparison logic to print a message
+based on the input.
+
+	(
+		(def is_zero#N :: ((== 0 N)))
+		(def test#N :: (
+			(if (is_zero N) (
+				(print "N is zero")
+			) (else (
+				(print "N is not zero, it is: " N)
+			)))
+		))
+		(test 1)
+		(test 0)
+	)
+
+A recursive function
+--------------------
+
+Define a recursive function that calculates the factorial of the
+given number, and call it.
+
+	((def fac #N :: (
+		(if (== 0 N) (1)
+			(else ((* N (fac (- N 1)))))
+		)
+	))
+	(set Test 10)
+		(print "factorial of " Test ": " (fac Test))
+	)
+
+Running some sample code
+========================
+
+Use the file `run.js` in the top level directory, and specify a path to a Lithp
+source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
+
+To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
+
+```
+	node run.js l_src/factorial.lithp
+```
+
+You can see the internals of what the parser and interpreter are doing by passing
+the `-d` flag to run.js to enable debug mode. This prints out a tree of function
+calls, allowing you to follow the interpreters call sequence.
+
+Note that since imported functions run in their own instance, the debug output will
+change slightly to include the instance id of the interpreter handling the function
+calls.
+
 Language Status
 ===============
 
-Version: 0.6
-------------
+Version: 0.8 (Stable)
+---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
 for a fairly feature-complete compilation experience. The parser does not
@@ -64,11 +144,13 @@ Implemented milestones
     demonstrating the language and what the parser is capable of parsing.
 
   * It is considered feature complete. Only bugfixes are to be implemented.
-    (This does include the bug that "\n" is not parsed correctly.)
 
   * Future parsing work is to be done on the Platform V1 parser, implemented
     in Lithp and parsed by this parser. This should make maintenance and enhancements
     easier to implement.
+
+  * Now recognises a number of builtin functions and saves runtime speed by resolving
+    these to arity star functions during parsing.
 
 * Module system
 
@@ -92,9 +174,17 @@ Implemented milestones
     run in the instance of the interpreter in which they were defined. This
     retains their access to all defined functions and variables.
 
+* Speed improvements
+
+  * A number of enhancements have been made that improve the runtime speed
+    of the language. These include quicker name lookups, caching of arity
+    star functions once recognised, and strict mode.
 
 Short term goals
 ----------------
+
+* Serialization of compiled OpChains to binary. Would allow for other Lithp
+ interpreters to run parsed code. (A C# interpreter is in progress.)
 
 * Implement a standard library of functions written in Lithp and available
   as runtime modules. These will be automatically imported, and may replace
@@ -109,7 +199,7 @@ Short term goals
   This will likely uncover new things to fix or improve.
 
 Longterm goals
--------------- 
+--------------
 
 These features are desired, but may be a long time coming.
 
@@ -118,26 +208,6 @@ These features are desired, but may be a long time coming.
 	The new native parser will feature more language features, including the ability
 	to alter the parser itself at runtime, allowing completely new features to be
 	implemented at runtime.
-
-Running some sample code
-========================
-
-Use the file `run.js` in the top level directory, and specify a path to a Lithp
-source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
-
-To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
-
-```
-	node run.js l_src/factorial.lithp
-```
-
-You can see the internals of what the parser and interpreter are doing by passing
-the `-d` flag to run.js to enable debug mode. This prints out a tree of function
-calls, allowing you to follow the interpreters call sequence.
-
-Note that since imported functions run in their own instance, the debug output will
-change slightly to include the instance id of the interpreter handling the function
-calls.
 
 Design
 ======
@@ -286,65 +356,8 @@ the a different instance of the Lithp interpreter than the module.
 To put it another way, module functions run in their own instance, but you can pass
 them any usual value, including callbacks that retain access to defined values.
 
-Examples
-========
-
-The main examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
-
-Some following examples are implemented in `lib/samples.js`, however these are hand
-compiled and outdated.
-
-Simple test
------------
-
-Print a string.
-
-	((set Test "test")
-	 (print "Test: " Test))
-
-
-Simple function
----------------
-
-Define a simple function and call it.
-
-	((def add #A,B :: ((+ A B)))
-	 (print "Add 5+10: " (add 5 10)))
-
-
-Multiple functions and logic
-----------------------------
-
-Define two functions and use comparison logic to print a message
-based on the input.
-
-	(
-		(def is_zero#N :: ((== 0 N)))
-		(def test#N :: (
-			(if (is_zero N) (
-				(print "N is zero")
-			) (else (
-				(print "N is not zero, it is: " N)
-			)))
-		))
-		(test 1)
-		(test 0)
-	)
-
-A recursive function
---------------------
-
-Define a recursive function that calculates the factorial of the
-given number, and call it.
-
-	((def fac #N :: (
-		(if (== 0 N) (1)
-			(else ((* N (fac (- N 1)))))
-		)
-	))
-	(set Test 10)
-		(print "factorial of " Test ": " (fac Test))
-	)
+Extended Examples
+=================
 
 Read a file
 -----------

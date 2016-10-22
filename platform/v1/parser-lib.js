@@ -5,6 +5,8 @@
  * Incorporates additional library functions.
  */
 
+"use strict";
+
 var util = require('util'),
 	inspect = util.inspect;
 var lithp = require(__dirname + '/../../index'),

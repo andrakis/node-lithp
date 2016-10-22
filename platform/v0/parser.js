@@ -31,6 +31,32 @@ var parser_debug = function() {
 	if(enable_parser_debug)
 		console.error.apply(console, arguments);
 }
+global._lithp.set_parser_debug = function(val) { enable_parser_debug = val; };
+
+var arityBuiltins = {
+	print: '*',
+	and: '*',
+	or: '*',
+	'+': '*',
+	'++': '*',
+	'-': '*',
+	'/': '*',
+	'*': '*',
+	'+': '*',
+	'+': '*',
+	'+': '*',
+	list: '*',
+	flatten: '*',
+	call: '*',
+	'to-string': '*',
+	'export': '*',
+	'export-global': '*',
+	invoke: '*',
+	dict: '*',
+};
+
+var timespentParsing = 0;
+global._lithp.getParserTime = function() { return timespentParsing; };
 
 var EX_LITERAL = 1 << 0,             // Literal (1, 2, "test")
     EX_OPCHAIN = 1 << 1,             // opening OpChain '('
@@ -116,7 +142,7 @@ ParserState.prototype.classify = function(ch) {
 				val = EX_ATOM;
 			else if(ch.match(/^[A-Z][A-Za-z0-9_]*$/))
 				val = EX_VARIABLE | EX_FUNCTION_PARAM;
-			else if(ch.match(/^[0-9][0-9.]*$/))
+			else if(ch.match(/^-?[0-9][0-9.]*$/))
 				val = EX_NUMBER | EX_ATOM;
 			else if(ch.length > 1 && ch.match(/^".*"$/))
 				val = EX_STRING_DOUBLE;
@@ -210,8 +236,11 @@ ParserState.prototype.convert = function(chain, curr) {
 			parser_debug("CONVERT TO LITERAL");
 			return this.mapParam(eleFirst, chain, eleFirst);
 		} else {
-			parser_debug("FUNCTIONCALL " + eleFirst + "/" + params.length);
-			op = new FunctionCall(eleFirst + "/" + params.length, params);
+			var plen = params.length;
+			if(eleFirst in arityBuiltins)
+				plen = arityBuiltins[eleFirst];
+			parser_debug("FUNCTIONCALL " + eleFirst + "/" + plen);
+			op = new FunctionCall(eleFirst + "/" + plen, params);
 			return op;
 		}
 	} else if(Array.isArray(eleFirst)) {
@@ -489,10 +518,13 @@ ParserState.prototype.parseSection = function(it, dest) {
 }
 
 function BootstrapParser (code) {
+	var start = (new Date()).getTime();
 	var state = new ParserState();
 	var it = code.split('').iterator();
 	state.ops = state.parseSection(it, []);
-	return state.finalize();
+	var fin = state.finalize();
+	timespentParsing += (new Date()).getTime() - start;
+	return fin;
 }
 
 exports.BootstrapParser = BootstrapParser;
