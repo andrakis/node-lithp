@@ -23,7 +23,8 @@ var util = require('util'),
     inspect = util.inspect;
 var lithp = require('./.'),
     Lithp = lithp.Lithp,
-    Atom = lithp.Types.Atom,
+    types = lithp.Types,
+    Atom = types.Atom,
     debug = lithp.debug;
 
 var BootstrapParser = require('./platform/v0/parser').BootstrapParser;
@@ -116,5 +117,6 @@ if(print_times) {
 	}
 	console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
 	console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
+	console.error("OpChains created: " + types.GetOpChainsCount());
 }
 
