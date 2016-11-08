@@ -1,6 +1,6 @@
 {
   "name": "lithp",
-  "version": "0.8.0",
+  "version": "0.8.10",
   "description": "A small Lisp-like language with a tiny interpreter",
   "main": "index.js",
   "scripts": {

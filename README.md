@@ -107,7 +107,7 @@ calls.
 Language Status
 ===============
 
-Version: 0.8 (Stable)
+Version: 0.8.10 (Stable)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
@@ -115,8 +115,8 @@ for a fairly feature-complete compilation experience. The parser does not
 currently supports all the constructs it should - these are being corrected
 as they are found.
 
-Modules are supported, however currently no standard library is provided in one.
-Instead, see the [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) example for how functions may be defined, exported,
+Modules are supported, and a standard library is starting to be expanded upon.
+For more information on modules, see the [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) example for how functions may be defined, exported,
 and imported.
 
 See `run.js` or the `Running some sample code` section for information on how
@@ -152,12 +152,16 @@ Implemented milestones
   * Now recognises a number of builtin functions and saves runtime speed by resolving
     these to arity star functions during parsing.
 
+  * Floating point numbers now work correctly, as does \t escape sequence.
+
+  * Issues parsing tabs and newlines corrected.
+
 * Module system
 
   * Allows scripts to import another module. Imported module is parsed by
     the BootStrap parser and all functions run in their own instance of Lithp.
 
-  * No standard module library is currently provided. This is a short term goal.
+  * A small standard library is provided. This is being expanded upon.
 
   * Modules can define their own functions, call any function they want, and
     export defined functions.
@@ -174,11 +178,16 @@ Implemented milestones
     run in the instance of the interpreter in which they were defined. This
     retains their access to all defined functions and variables.
 
+  * Enhanced import/1 to search a set of module paths, allowing for greater
+    flexibility.
+
 * Speed improvements
 
   * A number of enhancements have been made that improve the runtime speed
     of the language. These include quicker name lookups, caching of arity
     star functions once recognised, and strict mode.
+
+  * Strict mode is now implemented across all files.
 
 Short term goals
 ----------------
@@ -186,13 +195,7 @@ Short term goals
 * Serialization of compiled OpChains to binary. Would allow for other Lithp
  interpreters to run parsed code. (A C# interpreter is in progress.)
 
-* Implement a standard library of functions written in Lithp and available
-  as runtime modules. These will be automatically imported, and may replace
-  some inbuilt functions.
-
-* Enhance import/1 to search a set of module paths, allowing for greater
-  flexibility. Presently your best bet is to calculate the full path to
-  the module desired using the inbuilt `__dirname` definition.
+* Expand the standard module library.
 
 * The language is considered powerful enough and feature complete that
   personal work has begun on new projects using Lithp as their base language.
