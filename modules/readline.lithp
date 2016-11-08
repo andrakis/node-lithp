@@ -1,0 +1,21 @@
+% Provide Readline functionality from standard NodeJS library.
+(
+	(platform v1)
+	(platform ext)
+	(var Readline (require "readline"))
+	(def readline #Question,Callback :: (
+		(var RL (invoke Readline "createInterface" (dict 
+			(tuple input (stdin)) 
+			(tuple output (stdout))
+		)))
+		(invoke RL "question" Question (js-bridge #Answer :: (
+			(call Callback Answer)
+			(invoke RL "close")
+		)))
+	))
+	(export-global readline/2)
+
+	(if (== true (get-def 'TEST')) (
+		(readline "How are you? " #A :: ((print A)))
+	))
+)

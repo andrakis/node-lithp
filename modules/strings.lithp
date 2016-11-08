@@ -1,0 +1,12 @@
+(
+	% Concatenate strings (or objects that can be added to strings, such as
+	% numbers.)
+	(def concat/* #List :: (
+		(var Result "")
+		(map List (scope #Str :: (
+			(set Result (+ Result (+ " " Str)))
+		)))
+		(get Result)
+	))
+	(export-global concat/*)
+)

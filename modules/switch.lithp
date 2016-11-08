@@ -1,0 +1,93 @@
+% Implements the standard switch construct in Lithp.
+%
+% Usage:
+%
+%  (switch Value Handlers)
+%
+% Where:
+%
+%  Value         is any value to compare
+%  Handlers      is a (list) of handlers.
+%
+% Available handlers:
+%
+%  (case Value,Action#::)    If switch value is Value, perform Action.
+%                            Note that no arguments are given to Action.
+%  (default Action#Value::)  If no matches found, this action is performed.
+%                            It is given the value passed to switch.
+(
+	(platform v1)
+
+	% A parsing error presently prevents the following atoms from being
+	% parsed correctly. We instead make functions for them that return
+	% the atoms.
+	(def true # :: (atom true))
+	(def false # :: (atom false))
+	(export-global true/0 false/0)
+	(def case #Value,Action :: (
+		(scope #Given :: (
+			(if (== Given Value) ((tuple ok (call Action)))
+			    (else ((tuple false false)))
+			)
+		))
+	))
+	(def default #Action :: (
+		(scope #Given :: (
+			(tuple default (call Action Given))
+		))
+	))
+	(def switch #Value,Handlers :: (
+		(if (== 0 (length Handlers)) (
+			(throw "No handlers given to switch/2")
+		))
+		(var Result nil)
+		(var ResultSet false)
+		(var DefaultValue nil)
+		(var Switch_Inner (scope #List :: (
+			(var Head (head List))
+			(var Tail (tail List))
+			% (print "Calling head: " Head)
+			(var InnerResult (call Head Value))
+			% (print "Inner Result: " InnerResult)
+			(if (== ok (index InnerResult 0)) (
+				(set Result (index InnerResult 1))
+				(set ResultSet true)
+			) (else (
+				(if (== default (index InnerResult 0)) (
+					(set DefaultValue (index InnerResult 1))
+				))
+			)))
+			(if (and (!= 0 (length Tail)) (== ResultSet false)) (
+				(call Switch_Inner Tail)
+			) (else (
+				(if (== ResultSet false) (DefaultValue)
+				    (else (Result))
+				))
+			))
+		)))
+		(call Switch_Inner Handlers)
+	))
+	(def switch/* #Args :: (
+		(switch (head Args) (tail Args))
+	))
+	% This section is disabled. It tests the implementation.
+	(if (== true (get-def 'TEST')) (
+		(print "Debug is on, running tests")
+		(var Case1 (case 1 # :: ("one")))
+		(var Case2 (case 2 # :: ("two")))
+		(var Case3 (case 3 # :: ("three")))
+		(var Case4 (case 4 # :: ("four")))
+		(var Default (default #Given :: ((+ "Other: " Given))))
+		(var Value 3)
+		(print (switch Value (list Case1 Case2 Case3 Case4 Default)))
+		% Note trailing space. Parser bug, not yet fixed.
+		(print (switch Value (list 
+			(case 1 # :: ("one"))
+			(case 2 # :: ("two"))
+			(case 3 # :: ("three"))
+			(case 4 # :: ("four"))
+			(default #N :: ((+ "Other: " N)))
+		)))
+	))
+	(export-global case/2 default/1 switch/2 switch/*)
+)

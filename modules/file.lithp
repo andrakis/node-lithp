@@ -1,0 +1,25 @@
+% Provides file IO functions
+(
+	(platform v1)
+	(var FS (require "fs"))
+	(var Path (require "path"))
+
+	(def readFileAsync #Filename,Callback :: (
+		(set Filename (invoke Path "resolve" Filename))
+		(invoke FS "readFile" Filename (js-bridge Callback))
+	))
+
+	(def read-file #Filename,Callback :: (
+		(readFileAsync Filename Callback)
+	))
+
+	% Deprecated: (export-global readFileAsync/2)
+	(export-global read-file/2)
+
+	(if (== true (get-def 'TEST')) (
+		(read-file "index.js" #Err,Data :: (
+			(print "Got Err:" Err)
+			(print "Got Data:" (to-string Data))
+		))
+	))
+)

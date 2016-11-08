@@ -1,0 +1,81 @@
+% Provide functions working with lists.
+(
+	% Map a list with a callback.
+	(def map #List,Callback :: (
+		(var Result (list))
+		(var MapInner (scope #Head,Tail :: (
+			(set Result (++ Result (call Callback Head)))
+			(if (!= 0 (length Tail)) (
+				(call MapInner (head Tail) (tail Tail))
+			))
+		)))
+		(if (!= 0 (length List)) (
+			(call MapInner (head List) (tail List))
+		))
+		(Result)
+	))
+
+	% Foldl
+	(def foldl #List,Initial,Callback :: (
+		(var FoldlInner (scope #Head,Tail,Val0 :: (
+			(var Val1 (call Callback Head Val0))
+			(if (!= 0 (length Tail)) (
+				(call FoldlInner (head Tail) (tail Tail) Val1)
+			) (else (
+				(Val1)
+			)))
+		)))
+		(if (!= 0 (length List)) (
+			(call FoldlInner (head List) (tail List) Initial)
+		) (else (
+			(Initial)
+		)))
+	))
+
+	% Each. Similar to map but always returns nil.
+	(def each #List,Callback :: (
+		(var EachInner (scope #Head,Tail :: (
+			(call Callback Head)
+			(if (!= 0 (length Tail)) (
+				(call EachInner (head Tail) (tail Tail))
+			))
+		)))
+		(if (!= 0 (length List)) (
+			(call EachInner (head List) (tail List))
+		))
+		(atom nil)
+	))
+
+	% Sequence. Count from N0 to N1.
+	(def seq #N0,N1 :: (
+		(seq N0 N1 (? (< N0 N1) 1 -1))
+	))
+	(def seq #N0,N1,Inc :: (
+		(var Result (list))
+		(var SeqInner (scope #N :: (
+			(set Result (++ Result (list N)))
+			(if (? (== 1 Inc) (< N N1) (> N N1)) (
+				(call SeqInner (+ N Inc))
+			))
+		)))
+		(call SeqInner N0)
+		(Result)
+	))
+
+	(export-global map/2 foldl/3 each/2 seq/2 seq/3)
+
+	% Pass -DTEST to livium.lithp to enable.
+	(if (== true (get-def 'TEST')) (
+		(var SampleList (list 1 2 4 8 16 32))
+		(print "Map test: " (map SampleList #N :: ((* N 2))))
+		(print "Foldl test: " (foldl SampleList 0 #N,A :: ((+ N A))))
+		(print "Empty map test: " (map (list) #N :: ((* N 2))))
+		(print "Empty foldl test:" (foldl (list) 0 #N,A :: ((+ N A))))
+		(each SampleList #N :: (
+			(print "N:" N)
+		))
+		(print "Seq test:" (seq 1 5))
+		(print "Reverse seq test:" (seq 5 1))
+	))
+
+)

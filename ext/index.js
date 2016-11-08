@@ -31,6 +31,9 @@ function builtin (name, params, body) {
 // See lib/builtins.js for more examples.
 builtin("count-params/*", [], Params => Params.length);
 
+builtin('stdin', [], () => process.stdin);
+builtin('stdout', [], () => process.stdout);
+
 exports.setup = function(lithp) {
 	var count = 0;
 	for(var k in builtins) {
