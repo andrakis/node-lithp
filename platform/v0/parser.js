@@ -7,7 +7,7 @@
  * See 'run.js' (in the top level directory) for a working usage of this parser.
  */
 
-// TODO: Handle escape sequences in strings. Presently, "\n" does not work.
+"use strict";
 
 var util = require('util'),
 	inspect = util.inspect;
@@ -130,7 +130,8 @@ ParserState.prototype.classify = function(ch) {
 	switch(ch) {
 		case '(': val = EX_OPCHAIN | EX_FUNCTIONCALL; break;
 		case ')': val = EX_CALL_END | EX_OPCHAIN_END; break;
-		case ' ': val = EX_PARAM_SEPARATOR; break;
+		case ' ': case "\t": case "\r": case "\n":
+			val = EX_PARAM_SEPARATOR; break;
 		case "'": val = EX_STRING_SINGLE; break;
 		case '"': val = EX_STRING_DOUBLE; break;
 		case '%': val = EX_COMMENT; break;
@@ -170,6 +171,7 @@ function parseString (str) {
 		switch(Escape) {
 			case 'n': return "\n";
 			case 'r': return "\r";
+			case 't': return "\t";
 			case '\\': return "\\";
 			default: throw new Error('Unknown escape sequence: ' + Escape);
 		}
@@ -191,7 +193,7 @@ ParserState.prototype.mapParamInner = function(P, chain, fnName) {
 				return new VariableReference(P);
 			return new FunctionCall("get/1", [new VariableReference(P)]);
 		} else if(cls & EX_NUMBER)
-			return new LiteralValue(parseInt(P));
+			return new LiteralValue(Number(P));
 		else if(cls & EX_ATOM)
 			return Atom(P);
 	} else {
@@ -299,15 +301,15 @@ ParserState.prototype.parseSection = function(it, dest) {
 	var ch;
 	var self = this;
 
-	function ignore_line () {
-	}
-
 	// Move to the next valid character.
 	// Skips newlines, tabs, and also strips comment lines.
 	function moveNext () {
-		var expect = this.expect;
+		var expect = self.expect;
 		var ch = it.next();
+		if(ch === undefined)
+			return ch;
 		function ignore_line () {
+			var chCode = ch.charCodeAt(0);
 			while(chCode != 10) {
 				ch = it.next();
 				characters++;
@@ -316,12 +318,6 @@ ParserState.prototype.parseSection = function(it, dest) {
 				chCode = ch.charCodeAt(0);
 			}
 			ch = it.next();
-			chCode = ch.charCodeAt(0);
-			while(chCode == 10 || chCode == 13) {
-				characters++;
-				ch = it.next();
-				chCode = ch.charCodeAt(0);
-			}
 		}
 		if(characters == 0 && ch == '#') {
 			ch = it.next();
@@ -334,14 +330,6 @@ ParserState.prototype.parseSection = function(it, dest) {
 		characters++;
 		if(ch === undefined)
 			return ch;
-		var chCode = ch.charCodeAt(0);
-		while(chCode == 10 || chCode == 9 || chCode == 13) {
-			ch = it.next();
-			characters++;
-			if(ch === undefined)
-				return ch;
-			chCode = ch.charCodeAt(0);
-		}
 		if(ch == '%' && !(self.expect & EX_STRING_CHARACTER)) {
 			// Comment and not in speech, ignore this line.
 			// Must keep running in a loop, in case there are more
