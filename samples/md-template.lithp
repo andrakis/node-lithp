@@ -1,0 +1,48 @@
+#!/home/freestyle/git/node-lithp/run
+% Markdown Template
+(
+	(import "file")
+	(import "lists")
+	(import "readline")
+
+	(platform v1)
+
+	(var TabIndentCount 4)
+	(var TabIndent (invoke " " repeat TabIndentCount))
+
+	(def make-template #Code :: (
+		(var Header "##[Lithp][1],")
+		(var Url    "  [1]: https://github.com/andrakis/node-lithp")
+		(print Header (length Code) "bytes")
+		(print)
+		(var Test (match Code (regex (nl) "g")))
+		(if (<= (length (? (== (null) Test) [] Test)) 1) (
+			(print "    " Code)
+		) (else (
+			(each (list (tuple "\\t" TabIndent)) (scope #Tuple :: (
+				(set Code (replace Code (regex (index Tuple 0) "g") (index Tuple 1)))
+			)))
+			(var Lines (split Code (regex "\r?\n\r?")))
+			(each Lines (scope #Line :: ((print (+ TabIndent Line)))))
+		)))
+		(print)
+		(print Url)
+	))
+
+	(if (== false (get-def "FILE")) (
+		(readline "Code: " (scope #Code :: (
+			(make-template Code)
+		)))
+	) (else (
+		(var File (+ "" (get-def "FILE")))
+		(print "Opening file" File "...")
+		(read-file File (scope #Err,Data :: (
+			(if (!= (null) Err) (
+				(print "Got Err:" Err)
+			) (else (
+				(var Content (to-string Data))
+				(make-template Content)
+			)))
+		)))
+	)))
+)

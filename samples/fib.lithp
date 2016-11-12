@@ -1,0 +1,12 @@
+(
+	(import "lists")
+	(def fib #N :: (
+		(if (< N 2) (1) (else (
+			(+ (fib (- N 1)) (fib (- N 2)))
+		)))
+	))
+	(def fib-orial #N :: (
+		(prod (map (seq 1 N) (scope #I :: ((fib I)))))
+	))
+	(each (seq 2 15) (scope #N :: ((print (fib-orial N)))))
+)

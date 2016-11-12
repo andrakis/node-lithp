@@ -1,0 +1,4 @@
+(
+	(def f #::((def x #S,N::(invoke S repeat N))(var A (x "/" 5))(var B (x "\\" 5))(var C (+ (x (+ A B) 6) (nl)))(var D (+ (x (+ B A) 6) (nl)))(print (x (+ (x C 4) (x D 4)) 5))))
+	(f)
+)

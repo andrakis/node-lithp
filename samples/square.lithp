@@ -1,0 +1,5 @@
+(
+	(import "lists")
+	(def s #N::((var X (repeat "#" N))(print X)(each (seq 3 N) (scope #X::((print (+ "#" (repeat " " (- N 2)) "#")))))(print X)))
+	(s 10)
+)
