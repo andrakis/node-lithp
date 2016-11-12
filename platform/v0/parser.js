@@ -390,6 +390,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 
 		// Has the character been classified as something we are expecting?
 		if(!(cls & expect)) {
+			console.error("Unexpected character: " + ch);
 			throw new Error("Unexpected " + GET_EX(cls) + ", was expecting: " + GET_EX(this.expect));
 		}
 

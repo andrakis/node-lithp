@@ -1,9 +1,9 @@
 % Demonstrate a power function
 (
 	(def pow #X,Y :: (
-		(if (== Y 1) (
-			(X)
-		) (else (
+		(if (== Y 1)
+			X
+		(else (
 			(* X (pow X (- Y 1)))
 		)))
 	))

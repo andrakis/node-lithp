@@ -2,48 +2,46 @@
 (
 	% Map a list with a callback.
 	(def map #List,Callback :: (
-		(var Result (list))
-		(var MapInner (scope #Head,Tail :: (
-			(set Result (++ Result (call Callback Head)))
-			(if (!= 0 (length Tail)) (
-				(call MapInner (head Tail) (tail Tail))
-			))
+		(if (== 0 (length List)) (list) (else (
+			(++ (list) (map_inner (head List) (tail List) Callback))
 		)))
-		(if (!= 0 (length List)) (
-			(call MapInner (head List) (tail List))
+	))
+	(def map_inner #Head,Tail,Callback :: (
+		(var N (call Callback Head))
+		(if (== 0 (length Tail)) (N) (else (
+			(++ (list N) (map_inner (head Tail) (tail Tail) Callback)))
 		))
-		(Result)
 	))
 
 	% Foldl
 	(def foldl #List,Initial,Callback :: (
-		(var FoldlInner (scope #Head,Tail,Val0 :: (
-			(var Val1 (call Callback Head Val0))
-			(if (!= 0 (length Tail)) (
-				(call FoldlInner (head Tail) (tail Tail) Val1)
-			) (else (
-				(Val1)
-			)))
-		)))
 		(if (!= 0 (length List)) (
-			(call FoldlInner (head List) (tail List) Initial)
+			(foldl_inner (head List) (tail List) Initial Callback)
 		) (else (
 			(Initial)
+		)))
+	))
+	(def foldl_inner #Head,Tail,Val0,Callback :: (
+		(var Val1 (call Callback Head Val0))
+		(if (!= 0 (length Tail)) (
+			(foldl_inner (head Tail) (tail Tail) Val1 Callback)
+		) (else (
+			(Val1)
 		)))
 	))
 
 	% Each. Similar to map but always returns nil.
 	(def each #List,Callback :: (
-		(var EachInner (scope #Head,Tail :: (
-			(call Callback Head)
-			(if (!= 0 (length Tail)) (
-				(call EachInner (head Tail) (tail Tail))
-			))
-		)))
 		(if (!= 0 (length List)) (
-			(call EachInner (head List) (tail List))
+			(each_inner (head List) (tail List) Callback)
 		))
 		(atom nil)
+	))
+	(def each_inner #Head,Tail,Callback :: (
+		(call Callback Head)
+		(if (!= 0 (length Tail)) (
+			(each_inner (head Tail) (tail Tail) Callback)
+		))
 	))
 
 	% Sequence. Count from N0 to N1.
@@ -51,18 +49,21 @@
 		(seq N0 N1 (? (< N0 N1) 1 -1))
 	))
 	(def seq #N0,N1,Inc :: (
-		(var Result (list))
-		(var SeqInner (scope #N :: (
-			(set Result (++ Result (list N)))
-			(if (? (== 1 Inc) (< N N1) (> N N1)) (
-				(call SeqInner (+ N Inc))
-			))
-		)))
-		(call SeqInner N0)
-		(Result)
+		(def seq_inner #N,N1,Inc :: (
+			(if (? (>= Inc 1) (<= N N1) (>= N N1)) (
+				(++ (list N) (seq_inner (+ N Inc) N1 Inc))
+			) (else ((list))))
+		))
+		(++ (seq_inner N0 N1 Inc))
 	))
 
 	(export-global map/2 foldl/3 each/2 seq/2 seq/3)
+
+	(if (! (get-def 'NIF')) (
+		(def sum #L :: ((foldl L 0 #N,A :: ((+ N A)))))
+		(def prod #L :: ((foldl L 1 #N,A :: ((* A N)))))
+		(export-global sum/1 prod/1)
+	))
 
 	% Pass -DTEST to livium.lithp to enable.
 	(if (== true (get-def 'TEST')) (
@@ -76,6 +77,8 @@
 		))
 		(print "Seq test:" (seq 1 5))
 		(print "Reverse seq test:" (seq 5 1))
+		(print "Sum test:" (sum SampleList))
+		(print "Prod test:" (prod SampleList))
 	))
 
 )
