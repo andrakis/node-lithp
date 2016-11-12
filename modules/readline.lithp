@@ -3,19 +3,25 @@
 	(platform v1)
 	(platform ext)
 	(var Readline (require "readline"))
-	(def readline #Question,Callback :: (
-		(var RL (invoke Readline "createInterface" (dict 
-			(tuple input (stdin)) 
+	(var RL (invoke Readline "createInterface" (dict
+			(tuple input (stdin))
 			(tuple output (stdout))
-		)))
+		))
+	)
+	(def readline #Question,Callback :: (
 		(invoke RL "question" Question (js-bridge #Answer :: (
+			(invoke RL "pause")
 			(call Callback Answer)
-			(invoke RL "close")
 		)))
 	))
 	(export-global readline/2)
 
 	(if (== true (get-def 'TEST')) (
-		(readline "How are you? " #A :: ((print A)))
+		(readline "How are you? " #A :: (
+			(print A)
+			(readline "How are you really? " #B :: (
+				(print B)
+			))
+		))
 	))
 )
