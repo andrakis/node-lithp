@@ -66,10 +66,6 @@ function error (message) { throw new Error(message); };
  * Implement all of the native types used by the interpreter so that a
  * parser written in Lithp can construct a parsing tree for the interpreter.
  */
-builtin("tuple/*", [], function (List) {
-	return newClass.apply(this, [Tuple].concat(List));
-});
-
 
 // Perform an Object comparison
 builtin("equal", ['A', 'B'], (A, B) =>
@@ -170,44 +166,6 @@ builtin_def('catch_native', (chain) => {
 	return new OpChain(chain, new AnonymousFunction(chain, ['Exception'], fn_body));
 });
 
-/** Members should be a list of tuples:
- *    {atom or string::Key, any::Value}
- */
-builtin('dict/*', [], Members => {
-	var Dict = {};
-	Members.forEach(Member => {
-		if(Member.constructor === LiteralValue)
-			Member = Member.value;
-		if(Member.constructor !== Tuple) {
-			throw new Error('dict expects a list of tuples, got' + inspect(Member));
-		}
-		if(Member.length != 2) {
-			throw new Error('dict expects a tuple of {atom::Key, any::Value}');
-		}
-		var key = Member[0];
-		var value = Member[1];
-		if(key && key.type == 'Atom')
-			key = key.name;
-		Dict[key] = value;
-	});
-	return Dict;
-});
-
-// These functions can be used on JavaScript objects returned from require/1.
-builtin('dict-get', ['Dict', 'Name'], (Dict, Name) => Dict[Name]);
-builtin('dict-set', ['Dict', 'Name', 'Value'], (Dict, Name, Value) => {
-	Dict[Name] = Value;
-	return Dict;
-});
-builtin('dict-present', ['Dict', 'Name'], (Dict, Name) =>
-	(Name in Dict) ? atomTrue : atomFalse
-);
-builtin('dict-remove', ['Dict', 'Name'], (Dict, Name) => {
-	delete Dict[Name];
-	return Dict;
-});
-builtin('dict-keys', ['Dict'], Dict => Object.keys(Dict));
-
 builtin('atoms', [], () => GetAtoms.map(A => A.name));
 
 function atomBool (A) {
@@ -216,26 +174,6 @@ function atomBool (A) {
 
 builtin('inspect/2', ['Object', 'Deep'], (O, Deep) => inspect(O, {depth: atomBool(Deep) ? null : undefined}));
 builtin('inspect/3', ['Object', 'Deep', 'Color'], (O, Deep, Color) => inspect(O, {depth: atomBool(Deep) ? null : undefined, colors: atomBool(Color)}));
-
-// These are specific to JavaScript. This might matter in the future if the
-// interpreter is ever ported, so they are prefixed.
-builtin('require', ['Name'], Name => require(Name));
-builtin('{}', [], () => {});
-builtin('js-apply/3', ['Context', 'Function', 'ArgList'], (Ctx, F, AL) => {
-	return F.apply(Ctx, AL);
-});
-builtin('js-typeof/1', ['Object'], O => typeof(O));
-// Bridge to a JavaScript function. This returns a native JavaScript function
-// that when called, invokes the given FunctionDefinition with the arguments
-// given to the function. This can be used in fs.readFile for example.
-builtin('js-bridge/1', ['FunctionDefinition'], function(FnDef, State) {
-	return (self =>
-		function() {
-			var Args = Array.prototype.slice.call(arguments);
-			return self.invoke_functioncall(State, FnDef, Args);
-		}
-	)(this);
-});
 
 function lib_each (chain) {
 	/**

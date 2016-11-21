@@ -117,6 +117,7 @@ function ParserState (parent) {
 	this.in_variable = false;
 	this.in_atom = false;
 	this.quote_type = undefined;
+	this.line = 0;
 }
 
 // Classify the given character(s). It could suit a number of different
@@ -422,7 +423,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 				dest.push(this.current_word);
 			}
 			this.current_word = '';
-			this.expect = EX_OPCHAIN | EX_VARIABLE | EX_NUMBER | EX_LITERAL | EX_ATOM | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER;
+			this.expect = EX_OPCHAIN | EX_VARIABLE | EX_NUMBER | EX_LITERAL | EX_ATOM | EX_STRING_DOUBLE | EX_STRING_SINGLE | EX_ATOM | EX_FUNCTION_MARKER | EX_OPCHAIN_END;
 			this.in_variable = false;
 			this.in_atom = false;
 		} else if(cls & EX_STRING_SINGLE && this.quote_type != '"') {

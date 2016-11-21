@@ -1,0 +1,12 @@
+(
+	(def quote #S :: (+ (chr 34) (get S) (chr 34)))
+	(var Str (+ "((print " (quote "Hello world") "))"))
+	(var Str2 (+ "((print M) M)"))
+	(print Str)
+	(eval Str)
+	(eval Str2 (tuple "M" "Hello world"))
+	(var S "Hello World")
+	(eval "((print S))")
+	(var Add (eval (+ "((def x #A,B::((+ A B)))(get x/2))")))
+	(print (call Add 1 2))
+)

@@ -1,0 +1,1 @@
+((platform ext)(invoke (stdin) resume))

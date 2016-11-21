@@ -1,0 +1,36 @@
+(
+	% Caches calls
+	(platform v1)
+	(var Cache (dict))
+
+	(def cache-result #Value,Name,Function :: (
+		(var Dict (dict-get Cache Name))
+		(if (== (null) Dict) (
+			(dict-set Cache Name (dict))
+			(set Dict (dict-get Cache Name))
+		))
+		(if (dict-present Dict Value) (
+			(dict-get Dict Value)
+		) (else (
+			(var R (call Function Value))
+			(dict-set Dict Value R)
+			R
+		)))
+	))
+
+	(export-global cache-result/3)
+
+	(if (get-def 'TEST') (
+		(def myf #N :: (
+			(if (< N 2) (1) (
+				(+ (cache-result (- N 1) myf (get "myf/1"))
+				   (cache-result (- N 2) myf (get "myf/1")))
+			))
+		))
+		(print myf 15)
+		(import "lists")
+		(each (seq 1 15) (scope #N :: (
+			(print " " N ":" (myf N))
+		)))
+	))
+)

@@ -1,0 +1,19 @@
+(
+	(import "bignum")
+	(import "lists")
+	(var FL (dict))
+	(var Base 16)
+	(def b #N::((bignum N)))
+	(def s #N::((to-string N Base)))
+	(def fib #N::(
+		(if (b<= N (b 2)) (
+			(b 1)
+		) (
+			(+ (fibFL (b- N (b 2))) (fibFL (b- N (b 1))))
+		))
+	))
+	(def fibFL #N::((if (dict-present FL (s N)) ((dict-get FL (s N))) ((var I (fib N))(set FL (dict-set FL (s N) I))(I)))))
+	(def fib-orial #N::((bprod (map (seq 1 N) (scope #I::((fib (b I))))))))
+	(each (seq 2 20) (scope #N :: ((print (s (fib-orial N))))))
+	%(print (fib-orial (b 5)))
+)

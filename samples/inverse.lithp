@@ -1,0 +1,4 @@
+(
+	(def i #S::((replace S (regex "\\d" "g") (js-bridge #X::((^ X 1))))))
+	(print (i "01010101111000"))
+)

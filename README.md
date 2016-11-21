@@ -107,7 +107,7 @@ calls.
 Language Status
 ===============
 
-Version: 0.8.10 (Stable)
+Version: 0.9.1 (UNSTABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
@@ -133,6 +133,38 @@ corrected.
 
 Implemented milestones
 ----------------------
+
+* Language enhancements
+
+  * Implemented `while/2`, enabling non-recursive looping.
+
+  * The lists module has been rewritten to use `while/2`, resulting in much less
+    memory usage and improved runtime speed.
+
+  * Moved many functions from `Platform V1` to standard builtin library.
+
+  * Added many math builtins.
+
+  * Added missing regex test function (`test/2`)
+
+  * Added `env/0`, `argv/0`, `cwd/0` for command line information.
+
+  * Added number parsing: `parse-float/1`, `parse-int/1`
+
+  * Added `eval/1` allowing runtime code evaluation using the Bootstrap Parser.
+    Also adds `eval/*` for providing additional variables.
+
+  * Added `chr/1` and `asc/1` for converting to and from character codes and strings.
+
+* Debugging enhancements
+
+  * User defined functions now have a readable name, resulting in much more readable
+    debug output.
+
+  * The spacing and depth indications have been corrected and are now more consistent.
+
+  * No longer prints known symbol names when a symbol is not found. This was proving to
+    be too useless.
 
 * BootStrap Parser
 
@@ -180,6 +212,11 @@ Implemented milestones
 
   * Enhanced import/1 to search a set of module paths, allowing for greater
     flexibility.
+
+  * Several standard modules are now provided
+
+  * Added `import-instance/1` which retains the old behaviour of `import/1`.
+    `import/1` no longer imports modules into a new instance.
 
 * Speed improvements
 

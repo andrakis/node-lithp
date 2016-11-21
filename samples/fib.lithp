@@ -1,12 +1,11 @@
 (
+	(platform v1)
 	(import "lists")
-	(def fib #N :: (
-		(if (< N 2) (1) (else (
-			(+ (fib (- N 1)) (fib (- N 2)))
-		)))
-	))
-	(def fib-orial #N :: (
-		(prod (map (seq 1 N) (scope #I :: ((fib I)))))
-	))
-	(each (seq 2 15) (scope #N :: ((print (fib-orial N)))))
+	(var FL (dict))
+	(def fib #N::((if (< N 2) (1) ((+ (fibFL (- N 2)) (fibFL (- N 1)))))))
+	%(def fib #N::((if (< N 2) (1) ((+ (fib (- N 1)) (fib (- N 2)))))))
+	(def fibFL #N::((if (dict-present FL N) ((dict-get FL N)) ((var I (fib N))(set FL (dict-set FL N I))(I)))))
+	(def fib-orial #N::((prod (map (seq 1 N) (scope #I::((fib I)))))))
+	(each (seq 2 20) (scope #N :: ((print (fib-orial N)))))
+	%(print (fib-orial 2))
 )

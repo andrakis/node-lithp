@@ -1,0 +1,58 @@
+% Uses the NodeJS Bignum module and provides arithmatic functions.
+%
+% All arithmatic functions are prefixed with 'b'.
+(
+	(import "lists")
+	(var Bignum (require "bignum"))
+	(def bignum #Value :: ((call Bignum Value)))
+
+	(def b+ #A,B :: ((invoke A add B)))
+	(def b- #A,B :: ((invoke A sub B)))
+	(def b* #A,B :: ((invoke A mul B)))
+	(def b//2 #A,B :: ((invoke A div B)))
+	(def babs #N :: ((invoke N abs)))
+	(def bneg #N :: ((invoke N neg)))
+	(def b> #A,B :: ((== (invoke A gt B) (true))))
+	(def b>= #A,B :: ((== (invoke A ge B) (true))))
+	(def b< #A,B :: ((== (invoke A lt B) (true))))
+	(def b<= #A,B :: ((== (invoke A le B) (true))))
+	(def b== #A,B :: ((== (invoke A eq B) (true))))
+	(def bpow #A,B :: ((invoke A pow B)))
+	(def bpowm #A,N,M :: ((invoke A powm N M)))
+	(def binvertm #N,M :: ((invoke A invertm M)))
+	(def brand # :: ((call Bignum rand)))
+	(def brand #U :: ((call Bignum rand U)))
+	(def bsqrt #N :: ((invoke N sqrt)))
+	(def broot #N,M :: ((invoke N root M)))
+	(def b<< #N,S :: ((invoke N shiftLeft S)))
+	(def b>> #N,S :: ((invoke N shiftRight S)))
+	(def bgcd #N,M :: ((invoke N gcd M)))
+	(def bjacobi #N,M :: ((invoke N jacobi M)))
+
+	(export-global bignum/1)
+	(export-global b+/2 b-/2 b*/2 b//2)
+	(export-global babs/1 bneg/1)
+	(export-global b>/2 b>=/2 b</2 b<=/2 b==/2)
+	(export-global bpow/2 bpowm/3 binvertm/2)
+	(export-global brand/0 brand/1 bsqrt/1 broot/2)
+	(export-global b<</2 b>>/2 bgcd/2 bjacobi/2)
+
+	(def bsum #L :: ((foldl L (bignum 0) (scope #N,A :: ((b+ N A))))))
+	(def bprod #L :: ((foldl L (bignum 1) (scope #N,A :: ((b* A (bignum N)))))))
+
+	(export-global bsum/1 bprod/1)
+
+	(if (get-def 'TEST') (
+		(var N1 (bignum "782910138827292261791972728324982"))
+		(var N2 (bignum "612948285478570042376183478471174272694879005539119746287405300324"))
+		(print (to-string (b+ N1 N2)))
+		(print (to-string (b- N1 N2)))
+		(print (to-string (b* N1 N2)))
+		(print (to-string (b/ N2 N1)))
+		(print (b> N1 N2))
+		(print (b>= N2 N1))
+		(print (brand))
+		(print (brand 2))
+		(print (bsum (list N1 N2)))
+	))
+)

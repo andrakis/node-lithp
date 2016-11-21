@@ -1,0 +1,12 @@
+(
+	% Updated seq
+	(def seq2 #A,B :: (
+		(var L (list))
+		(while ((< A B)) (
+			(set L (++ L (list A)))
+			(set A (+ A 1))
+		))
+		L
+	))
+	(print (seq2 1 10))
+)

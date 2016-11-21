@@ -1,0 +1,5 @@
+(
+	(import "lists")(def f #::((each (seq 1 10) #N::((print N)))))
+	(def x #::((def y #N::((print N)(if (< N 10) ((y (+ N 1))))))(y 1)))
+	(f)
+)
