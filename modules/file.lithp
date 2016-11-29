@@ -1,6 +1,7 @@
 % Provides file IO functions
 (
-	(platform v1)
+	(import "lists")
+
 	(var FS (require "fs"))
 	(var Path (require "path"))
 
@@ -13,13 +14,42 @@
 		(readFileAsync Filename Callback)
 	))
 
+	(def file-exists #Path :: ((== (true) (invoke FS existsSync Path))))
+	(def is-file #Path :: ((== (true) (invoke (file-lstat Path) isFile))))
+	(def is-directory #Path :: (and (! (is-file Path)) (file-exists Path)))
+	(def file-lstat #Path :: (
+		(try (
+			(invoke FS lstatSync Path)
+		) (catch #E :: (
+			(lstat-empty Path)
+		)))
+	))
+
+	(var LStatMembers (list dev mode nlink uid gid rdev blksize ino
+	                        size blocks atime mtime ctime birthtime))
+	(def lstat-empty #Path :: (
+		(var Result (dict))
+		(each LStatMembers (scope #M :: ((dict-set Result M 0))))
+		(dict-set Result isFile (js-bridge # :: ((false))))
+		(Result)
+	))
+
 	% Deprecated: (export-global readFileAsync/2)
-	(export-global read-file/2)
+	(export-global read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
 
 	(if (== true (get-def 'TEST')) (
 		(read-file "index.js" #Err,Data :: (
 			(print "Got Err:" Err)
-			(print "Got Data:" (to-string Data))
+			(if (!= (undefined) Data) (
+				(print "Got Data:" (to-string Data))
+			))
 		))
+
+		(print (file-exists "run"))
+		(print (is-file "run"))
+		(print (is-file "src"))
+		(print (is-directory "src"))
+		(print (file-lstat "run1"))
+		(print (is-file "run1"))
 	))
 )

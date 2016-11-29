@@ -107,7 +107,7 @@ calls.
 Language Status
 ===============
 
-Version: 0.9.1 (UNSTABLE)
+Version: 0.9.2 (STABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser

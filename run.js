@@ -11,6 +11,7 @@
  *   -DNAME[=atom]          Define symbol name. If value not given,
  *                          defined as true. Always an atom.
  *   -t                     Print times (parse and run times)
+ *   -a                     Print known atoms after script execution.
  *   -v1                    (Obsolete) Load PlatformV1 library.
  *                          No longer used because platform/1 gives same
  *                          behaviour at run time.
@@ -35,6 +36,7 @@ var use_debug = false;
 var use_parser_debug = false;
 var use_platform_v1 = false;
 var print_times = false;
+var print_atoms = false;
 
 function show_help () {
 	console.error("Usage:");
@@ -46,6 +48,7 @@ function show_help () {
 	console.error("                    defined as true.");
 	console.error("    -t              Print times (parse and run times)");
 	console.error("                    to stderr.");
+	console.error("    -a              Print known atoms after script execution.");
 }
 
 args.forEach(A => {
@@ -71,6 +74,8 @@ args.forEach(A => {
 		});
 	} else if(file == "")
 		file = A;
+	else if (A.match(/-(a|atoms?)/))
+		print_atoms = true;
 	else {
 		console.error("Unknown option: " + A + "");
 		process.exit(2);
@@ -106,17 +111,25 @@ if(print_times)
 	console.error("Parsed in " + result[1] + "ms");
 
 result = timeCall("Run code", () => instance.run(parsed));
-if(print_times) {
-	var totalCalls = 0;
-	var info = [];
-	var lithp_instances = get_lithp_instances();
-	for(var id in lithp_instances) {
-		var i = lithp_instances[id];
-		totalCalls += i.functioncalls;
-		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
-	}
-	console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
-	console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
-	console.error("OpChains created: " + types.GetOpChainsCount());
-}
 
+global.lithp_atexit(() => {
+	if(print_times) {
+		var totalCalls = 0;
+		var info = [];
+		var lithp_instances = get_lithp_instances();
+		for(var id in lithp_instances) {
+			var i = lithp_instances[id];
+			totalCalls += i.functioncalls;
+			info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
+		}
+		console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
+		console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
+		console.error("OpChains created: " + types.GetOpChainsCount());
+	}
+	if(print_atoms) {
+		console.error("Atoms list:");
+		// Filter function below checks if the given key could be interpreted as a number.
+		// We filter out those keys because each atom is keyed by name and value (as a string.)
+		console.error(Object.filter(types.GetAtoms(), Name => Number.isNaN(new Number(Name) + 0)));
+	}
+});
