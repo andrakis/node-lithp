@@ -110,19 +110,27 @@ debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, co
 if(print_times)
 	console.error("Parsed in " + result[1] + "ms");
 
+function tallyCalls () {
+	var totalCalls = 0;
+	var info = [];
+	var lithp_instances = get_lithp_instances();
+	for(var id in lithp_instances) {
+		var i = lithp_instances[id];
+		totalCalls += i.functioncalls;
+		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
+	}
+	return [totalCalls, info];
+}
+
 result = timeCall("Run code", () => instance.run(parsed));
+var beforeEventsCalls = tallyCalls()[0];
 
 global.lithp_atexit(() => {
 	if(print_times) {
-		var totalCalls = 0;
-		var info = [];
-		var lithp_instances = get_lithp_instances();
-		for(var id in lithp_instances) {
-			var i = lithp_instances[id];
-			totalCalls += i.functioncalls;
-			info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
-		}
-		console.error(totalCalls + " function calls executed in " + result[1] + "ms across:\n" + info.join("\n") + "\n");
+		console.error(beforeEventsCalls + " function calls executed in " + result[1] + "ms before events");
+		var totalCalls = tallyCalls();
+		var totalTime  = (new Date().getTime()) - global._lithp_start;
+		console.error(totalCalls[0] + " function calls executed in " + totalTime + "ms across:\n" + info.join("\n") + "\n");
 		console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
 		console.error("OpChains created: " + types.GetOpChainsCount());
 	}
