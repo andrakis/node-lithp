@@ -130,7 +130,7 @@ global.lithp_atexit(() => {
 		console.error(beforeEventsCalls + " function calls executed in " + result[1] + "ms before events");
 		var totalCalls = tallyCalls();
 		var totalTime  = (new Date().getTime()) - global._lithp_start;
-		console.error(totalCalls[0] + " function calls executed in " + totalTime + "ms across:\n" + info.join("\n") + "\n");
+		console.error(totalCalls[0] + " function calls executed in " + totalTime + "ms across:\n" + totalCalls[1].join("\n") + "\n");
 		console.error("Total parse time: " + global._lithp.getParserTime() + "ms");
 		console.error("OpChains created: " + types.GetOpChainsCount());
 	}

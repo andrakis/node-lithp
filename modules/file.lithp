@@ -5,18 +5,19 @@
 	(var FS (require "fs"))
 	(var Path (require "path"))
 
-	(def readFileAsync #Filename,Callback :: (
+	(def read-file #Filename :: (
+		(set Filename (invoke Path "resolve" Filename))
+		(invoke FS "readFileSync" Filename)
+	))
+
+	(def read-file #Filename,Callback :: (
 		(set Filename (invoke Path "resolve" Filename))
 		(invoke FS "readFile" Filename (js-bridge Callback))
 	))
 
-	(def read-file #Filename,Callback :: (
-		(readFileAsync Filename Callback)
-	))
-
 	(def file-exists #Path :: ((== (true) (invoke FS existsSync Path))))
 	(def is-file #Path :: ((== (true) (invoke (file-lstat Path) isFile))))
-	(def is-directory #Path :: (and (! (is-file Path)) (file-exists Path)))
+	(def is-directory #Path :: ((and (! (is-file Path)) (file-exists Path))))
 	(def file-lstat #Path :: (
 		(try (
 			(invoke FS lstatSync Path)
@@ -25,17 +26,19 @@
 		)))
 	))
 
-	(var LStatMembers (list dev mode nlink uid gid rdev blksize ino
-	                        size blocks atime mtime ctime birthtime))
+	(var LStatMembers (list "dev" "mode" "nlink" "uid" "gid" "rdev" "blksize" "ino"
+	                        "size" "blocks" "atime" "mtime" "ctime" "birthtime"))
 	(def lstat-empty #Path :: (
 		(var Result (dict))
+		% Set each member to 0
 		(each LStatMembers (scope #M :: ((dict-set Result M 0))))
+		% Fake the isFile function
 		(dict-set Result isFile (js-bridge # :: ((false))))
-		(Result)
+		(get Result)
 	))
 
 	% Deprecated: (export-global readFileAsync/2)
-	(export-global read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
+	(export-global read-file/1 read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
 
 	(if (== true (get-def 'TEST')) (
 		(read-file "index.js" #Err,Data :: (

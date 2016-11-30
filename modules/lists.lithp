@@ -48,6 +48,20 @@
 	(def prod #L :: ((foldl L 1 #N,A :: ((* A N)))))
 	(export-global sum/1 prod/1)
 
+	(def filter #List,Predicate :: (
+		(var Result (list))
+		(while ((> (length List) 0)) (
+			(var Ele (head List))
+			(if (call Predicate Ele) (
+				(set Result (++ Result (list Ele)))
+			))
+			(set List (tail List))
+		))
+		(get Result)
+	))
+
+	(export-global filter/2)
+
 	% Pass -DTEST to livium.lithp to enable.
 	(if (== true (get-def 'TEST')) (
 		(var SampleList (list 1 2 4 8 16 32))
