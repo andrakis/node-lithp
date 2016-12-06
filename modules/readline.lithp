@@ -8,6 +8,8 @@
 			(tuple output (stdout))
 		))
 	)
+	(invoke RL pause)
+
 	(def readline #Question,Callback :: (
 		(invoke RL "question" Question (js-bridge #Answer :: (
 			(invoke RL "pause")

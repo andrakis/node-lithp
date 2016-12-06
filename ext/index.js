@@ -33,6 +33,7 @@ builtin("count-params/*", [], Params => Params.length);
 
 builtin('stdin', [], () => process.stdin);
 builtin('stdout', [], () => process.stdout);
+builtin('stderr', [], () => process.stderr);
 
 exports.setup = function(lithp) {
 	var count = 0;
