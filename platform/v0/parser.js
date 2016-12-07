@@ -389,6 +389,14 @@ ParserState.prototype.parseSection = function(it, dest) {
 			continue;
 		}
 
+		// OpChain begin but expecting separator?
+		if(cls & EX_OPCHAIN && expect & EX_PARAM_SEPARATOR) {
+			// Change character to separator, next loop we will get the EX_OPCHAIN again.
+			ch = ' ';
+			cls = this.classify(ch);
+			it.prev();
+		}
+
 		// Has the character been classified as something we are expecting?
 		if(!(cls & expect)) {
 			throw new Error("Unexpected character " + ch + " (" + GET_EX(cls) + "), was expecting: " + GET_EX(this.expect));

@@ -1,0 +1,6 @@
+% Test shorthand expressions, that is with a minimum amount of spaces.
+(
+	(def fac #N::((if(== 0 N)((1))((else((* N(fac(- N 1)))))))))
+	(var Test 10)
+	(print "factorial of " Test ": " (fac Test))
+)

@@ -3,7 +3,7 @@
 	(platform v1)
 	(var Cache (dict))
 
-	(def cache-result #Value,Name,Function :: (
+	(def cache-result (scope #Value,Name,Function :: (
 		(var Dict (dict-get Cache Name))
 		(if (== (null) Dict) (
 			(dict-set Cache Name (dict))
@@ -16,7 +16,7 @@
 			(dict-set Dict Value R)
 			R
 		)))
-	))
+	)))
 
 	(export-global cache-result/3)
 
