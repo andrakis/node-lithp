@@ -1,0 +1,118 @@
+% Simple Accumulative Calculator
+%
+%
+(
+	(import lists)
+	(import readline)
+	(import switch)
+
+	(import stderr)
+
+	(var Acc 0)
+
+	(def = #Ignored,Value :: ((get Value)))
+	(def v # :: ((get Acc)))
+	(def p # :: ((print (format-acc))(v)))
+	(def f # :: ((floor Acc)))
+	(def c # :: ((ceil Acc)))
+	(def e # :: ((exit)))
+	(def acc-op (scope #Op,Value :: (
+		(var Code (+ "(" Op " Acc " Value ")"))
+		(stderr-write (+ "Code: " Code "\n"))
+		(eval Code)
+	)))
+
+	(var Commands (dict
+		(tuple "c" "Ceil of Acc")
+		(tuple "f" "Floor of Acc")
+		(tuple "h" "Display this help")
+		(tuple "?" "Display this help")
+		(tuple "e" "Exit")
+		(tuple "p" "Print Acc")
+		(tuple "v" "Current value of Acc")
+		(tuple "=" "Set Acc to given value")
+		(tuple "H" "Set hex mode output")
+		(tuple "D" "Set decimal mode output")
+		(tuple "B" "Set binary mode output")
+	))
+
+	(var AccFormat "D")
+	(def format-acc # :: ((format-acc AccFormat)))
+	(var FormatAccCaseHex     (case "H" (scope # :: ((+ "0x" (to-string Acc 16))))))
+	(var FormatAccCaseDecimal (case "D" (scope # :: ((get Acc)))))
+	(var FormatAccCaseBinary  (case "B" (scope # :: ((+ "B" (to-string Acc 2))))))
+	(var FormatAccCaseList (list FormatAccCaseHex FormatAccCaseDecimal FormatAccCaseBinary))
+	(def format-acc #Format :: (
+		(switch Format FormatAccCaseList)
+	))
+	(def set-acc-format #Format :: (
+		(set AccFormat (get Format))
+		(c)
+	))
+
+	(var BuiltinsAvailable (dict
+		(tuple 1 (list abs acos acosh asin asinh atan atanh cbrt ceil clz32
+		               cos cosh floor hypot log log10
+		               log1p log2 sign sin sinh aqrt tan tanh))
+		(tuple 2 (list min max round pow imul exp expm1 fround round))
+	))
+	(def show-help # :: (
+		(print "Available commands:")
+		(each (dict-keys Commands) #Command :: (
+			(print "    " Command " -> " (index Commands Command))
+		))
+		(print "Syntax: op value value value")
+		(print "    eg: + 1 2 3 c (sin (pi))")
+		(print "      : = 27.4")
+		(print "Available builtins:")
+		(print (join (map (dict-keys (dict-get BuiltinsAvailable 1)) #Name :: (
+			(+ "(" (dict-get (dict-get BuiltinsAvailable 1) Name) " N)"))) ", "
+		))
+		(print (join (map (dict-keys (dict-get BuiltinsAvailable 2)) #Name :: (
+			(+ "(" (dict-get (dict-get BuiltinsAvailable 2) Name) " A B)"))) ", "
+		))
+		(get Acc)
+	))
+
+	(var CasePrint   (case "p" (scope # :: ((p)))))
+	(var CaseQuit    (case "q" (scope # :: ((e)))))
+	(var CaseCurrent (case "v" (scope # :: ((v)))))
+	(var CaseFloor   (case "f" (scope # :: ((f)))))
+	(var CaseCeil    (case "c" (scope # :: ((c)))))
+	(var CaseHex     (case "H" (scope # :: ((set-acc-format "H")))))
+	(var CaseDecimal (case "D" (scope # :: ((set-acc-format "D")))))
+	(var CaseBinary  (case "B" (scope # :: ((set-acc-format "B")))))
+	(var CaseHelp1   (case "h" (scope # :: ((show-help)))))
+	(var CaseHelp2   (case "?" (scope # :: ((show-help)))))
+	(var CaseDefault (default (scope #Given :: ((print "Unknown command")(get Acc)))))
+	(var CaseList    (list CasePrint CaseQuit CaseCurrent CaseFloor CaseCeil
+	                       CaseHex   CaseDecimal CaseBinary
+	                       CaseHelp1 CaseHelp2 CaseDefault))
+
+	(def parse #Entry :: (
+		(var Matches (match Entry "([-=+*/!@#$%^&<>a-z]+) (.*)$"))
+		(if (== (null) Matches) (
+			(switch Entry CaseList)
+		) (else (
+			(var Tail (index Matches 2))
+			(set Tail (replace Tail (regex "(?:^|\\s)([a-z]+)(?=\\s|$)" "g") (js-bridge #Value :: (
+				(+ "(" (trim Value) ") ")
+			))))
+			(try (
+				(acc-op (index Matches 1) Tail)
+			) #E :: (
+				(stderr-write (+ "Failed to parse: " (to-string E) "\n"))
+				(c)
+			))
+		)))
+	))
+
+	(def input-loop # :: (
+		(readline (+ (format-acc) ">") (scope #Value :: (
+			(set Acc (parse Value))
+			(input-loop)
+		)))
+	))
+
+	(input-loop)
+)

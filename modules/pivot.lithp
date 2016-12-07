@@ -1,0 +1,51 @@
+% Module: pivot
+%
+% Pivot a mathematical expression to reach a desired output.
+%
+% Example: (pivot 20 (list 1 5 2 2) (list + * / -)) == (list (tuple * 1 5) (tuple * 2) (tuple * 2))
+%
+(
+	(import lists)
+	(import random)
+	(import symbols)
+
+	(var AttemptsDefault 1000)
+
+	(def pivot #Desired,Nums,Ops :: (
+		(var Current 0)
+		(var Result nil)
+		(var AttemptsRemaining (get AttemptsDefault))
+		(while ((and (!= Current Desired) (> AttemptsRemaining 0))) (
+			% Random approach. lol.
+			(var OpsPadded (map (tail Nums) (scope #N :: ((random-list-item Ops)))))
+			(var Str "")
+			(each-idx Nums (scope #N,Idx :: (
+				(var Op (+ "" (index OpsPadded Idx)))
+				(if (!= "" Op) (
+					(set Str (+ Str "(" Op " " N " "))
+				) (else (
+					(set Str (+ Str N ")"))
+				)))
+			)))
+			(set Str (+ Str (repeat ")" (length Nums))))
+			(set Current (eval Str))
+			(if (== Current Desired) (
+				(set Result (get Str))
+			))
+			(set AttemptsRemaining (- AttemptsRemaining 1))
+		))
+		(get Result)
+	))
+
+	(if (get-def 'PIVOT_TEST') (
+		(var Numbers (list 1 5 2 2))
+		(var Operators (list * +))
+		(var Desired 20) % 1 * 5 * 2 + 2
+		(print (pivot Desired Numbers Operators))
+		(set Numbers (list 0 1 2 4 8 16 32))
+		(set Operators (list + * - /)) % << >> | ^ / -))
+		(set Desired 63)
+		(print (pivot 63 Numbers Operators))
+		(print (pivot 31 Numbers Operators))
+	))
+)

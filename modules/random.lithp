@@ -1,0 +1,24 @@
+% Provide integer random numbers
+(
+	(var DefaultMin 0)
+	(var DefaultMax 1000000)
+	(def random # :: ((random DefaultMin DefaultMax)))
+	(def random #End :: ((random 0 End)))
+	(def random #Start,End :: (
+		(+ Start (floor (* (rand) (- End Start))))
+	))
+	(export random/0 random/1 random/2)
+
+	(def random-list-item #List :: (
+		(index List (random (length List)))
+	))
+	(export random-list-item/1)
+
+	(if (get-def 'TEST') (
+		(print (random))
+		(print (random 10))
+		(print (random 1 10))
+		(print (random 1 100))
+		(print (random-list-item (list 1 2 3 4 5 6 7)))
+	))
+)

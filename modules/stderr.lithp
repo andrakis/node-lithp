@@ -1,0 +1,5 @@
+(
+	(platform ext)
+	(def stderr-write #V :: ((invoke (stderr) write V)))
+	(export-global stderr-write/1)
+)

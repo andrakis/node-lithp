@@ -1,0 +1,11 @@
+(
+	(import lists)
+	(import symbols)
+
+	(var Operators (list + - / *))
+	(var A 5)
+	(var B 10)
+	(each Operators (scope #Op :: (
+		(print (+ A " " Op " " B " = " (call-fn Op A B)))
+	)))
+)

@@ -27,6 +27,17 @@
 			(set List (tail List))
 		))
 	))
+	
+	(def each-idx #List,Callback :: (
+		(var Idx 0)
+		(while ((> (length List) 0)) (
+			((call Callback (head List) Idx))
+			(set List (tail List))
+			(set Idx (+ Idx 1))
+		))
+	))
+
+	(export-global each-idx/2)
 
 	% Sequence. Count from N0 to N1.
 	(def seq #N0,N1 :: (

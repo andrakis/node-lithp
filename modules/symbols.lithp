@@ -1,0 +1,46 @@
+% Module: symbols
+%
+% Provides functions for getting and calling currently defined symbols.
+% Symbols include functions and variables.
+(
+	%% Get a function by name and arity
+	%% If given arity is not found, checks for arity *.
+	%% If arity * function also not found, exception is thrown.
+	(def get-fn #Name,Arity :: (
+		(try (
+			(get (+ Name "/" Arity))
+		) #E :: (
+			(get (+ Name "/*"))
+		))
+	))
+	(export-global get-fn/2)
+
+	%% @for=call-fn/?
+	%% Call a function by name with the given arguments.
+	(def call-fn #Name,Arg1 :: ((call (get-fn Name 1) Arg1)))
+	(def call-fn #Name,Arg1,Arg2 :: ((call (get-fn Name 2) Arg1 Arg2)))
+	(def call-fn #Name,Arg1,Arg2,Arg3 :: ((call (get-fn Name 3) Arg1 Arg2 Arg3)))
+	(def call-fn #Name,Arg1,Arg2,Arg3,Arg4 :: ((call (get-fn Name 4) Arg1 Arg2 Arg3 Arg4)))
+	(def call-fn #Name,Arg1,Arg2,Arg3,Arg4,Arg5 :: ((call (get-fn Name 5) Arg1 Arg2 Arg3 Arg4 Arg5)))
+	(def call-fn #Name,Arg1,Arg2,Arg3,Arg4,Arg5,Arg6 :: (
+		(call (get-fn Name 6) Arg1 Arg2 Arg3 Arg4 Arg5 Arg6)
+	))
+	(def call-fn #Name,Arg1,Arg2,Arg3,Arg4,Arg5,Arg6,Arg7 :: (
+		(call (get-fn Name 7) Arg1 Arg2 Arg3 Arg4 Arg5 Arg6 Arg7)
+	))
+	(export-global call-fn/2 call-fn/3 call-fn/4 call-fn/5 call-fn/6 call-fn/7 call-fn/8)
+
+	(if (get-def 'TEST') (
+		(import lists)
+		(var Operators (list + - / *))
+		(var A 5)
+		(var B 10)
+		(each Operators (scope #Op :: (
+			(var Fn (get-fn Op 2))
+			(print (+ A " " Op " " B " = " (call Fn A B)))
+		)))
+		(each Operators (scope #Op :: (
+			(print (+ A " " Op " " B " = " (call-fn Op A B)))
+		)))
+	))
+)

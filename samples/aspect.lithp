@@ -1,0 +1,16 @@
+(
+	(import "lists")
+	(def f #A,B,C::(
+		(/ (* A B C)
+		   (+ B C (- 0 A))
+		   (+ A C (- 0 B))
+		   (+ A B (- 0 C))
+		)
+	))
+	(print (f 1   1   1))    % Output: 1
+	(print (f 3   4   5))    % Output: 1.25
+	(print (f 42  42  3.14)) % Output: 6.9476062266936145
+	(print (f 14  6   12))   % Output: 1.575
+	(print (f 6   12  14))   % Output: 1.575
+	(print (f 0.5 0.6 0.7))  % Output: 1.09375
+)
