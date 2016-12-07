@@ -10,8 +10,8 @@
 
 	(var Acc 0)
 
-	(def = #Ignored,Value :: ((get Value)))
-	(def v # :: ((get Acc)))
+	(def = #Ignored,Value :: (Value))
+	(def v # :: (Acc))
 	(def p # :: ((print (format-acc))(v)))
 	(def f # :: ((floor Acc)))
 	(def c # :: ((ceil Acc)))
@@ -47,7 +47,7 @@
 	))
 	(def set-acc-format #Format :: (
 		(set AccFormat (get Format))
-		(c)
+		(v)
 	))
 
 	(var BuiltinsAvailable (dict
@@ -62,8 +62,9 @@
 			(print "    " Command " -> " (index Commands Command))
 		))
 		(print "Syntax: op value value value")
-		(print "    eg: + 1 2 3 c (sin (pi))")
-		(print "      : = 27.4")
+		(print "    eg: = 1")
+		(print "      : + 2 2 3 v (sinh (pi))")
+		(print "      : = 33.548739357257745")
 		(print "Available builtins:")
 		(print (join (map (dict-keys (dict-get BuiltinsAvailable 1)) #Name :: (
 			(+ "(" (dict-get (dict-get BuiltinsAvailable 1) Name) " N)"))) ", "
