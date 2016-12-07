@@ -2,7 +2,8 @@
 %
 % Pivot a mathematical expression to reach a desired output.
 %
-% Example: (pivot 20 (list 1 5 2 2) (list + * / -)) == (list (tuple * 1 5) (tuple * 2) (tuple * 2))
+% Example: (pivot 63 (list 0 1 2 4 8 16 32) (list + * - / | ^))
+%  Yields: (^ 0 (^ 1 (| 2 (+ 4 (| 8 (+ 16 32))))))))
 %
 (
 	(platform ext)
@@ -44,6 +45,8 @@
 		(invoke (stdout) write "...Success:\n")
 		(get Result)
 	))
+
+	(export-global pivot/3)
 
 	(if (get-def 'PIVOT_TEST') (
 		(var Numbers (list 1 5 2 2))
