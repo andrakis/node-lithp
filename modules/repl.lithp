@@ -1,0 +1,55 @@
+% Module: REPL
+%
+% Provides a Read Execute Print Loop, allowing for an interactive interface.
+%
+% Currently only single lines are supported.
+%
+(
+	(platform ext)          % For stderr/0, stdout/0, stdin/0, set-top-level/1
+	(import readline)
+	(import stderr)
+
+	(var ContinueLoop true)
+	(var _ nil)
+	(var LoopHandler (scope #Input :: (
+		(var Result nil)
+		(if (== "\\q" Input) (
+			(set ContinueLoop false)
+		) (else (
+			(if (== "_" Input) (
+				(set Result (eval "(get _)"))
+			) (else (
+				(set-top-level true)
+				(try (
+					(set Result (eval Input))
+				) #E :: (
+					(try (
+						(stderr-write (+ "\nError during eval: " (to-string E) "\n"))
+						(stderr-write "Attempting as variable:\n")
+						(set Result (eval (+ "(" Input ")")))
+					) #E :: (
+						(stderr-write (+ "\nError during eval: " (to-string E) "\n"))
+					))
+				))
+			)))
+		)))
+		(if (!= Result nil) (
+			(print "Success, result: " Result)
+			(set _ (get Result))
+		))
+		(set-top-level false)
+		(repl-loop)
+	)))
+
+	(def repl-loop (scope # :: (
+		(if ContinueLoop (
+			(readline "> " LoopHandler)
+		))
+	)))
+
+	(def set-repl-continue (scope #Bool :: (
+		(set ContinueLoop (get Bool))
+	)))
+
+	(export-global repl-loop/0 set-repl-continue/1)
+)

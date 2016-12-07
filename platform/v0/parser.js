@@ -391,8 +391,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 
 		// Has the character been classified as something we are expecting?
 		if(!(cls & expect)) {
-			console.error("Unexpected character: " + ch);
-			throw new Error("Unexpected " + GET_EX(cls) + ", was expecting: " + GET_EX(this.expect));
+			throw new Error("Unexpected character " + ch + " (" + GET_EX(cls) + "), was expecting: " + GET_EX(this.expect));
 		}
 
 		if(cls & EX_OPCHAIN && !(expect & EX_STRING_CHARACTER)) {
@@ -508,6 +507,7 @@ ParserState.prototype.parseSection = function(it, dest) {
 }
 
 function BootstrapParser (code) {
+	characters = 0;
 	var start = (new Date()).getTime();
 	var state = new ParserState();
 	var it = code.split('').iterator();

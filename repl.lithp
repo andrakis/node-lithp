@@ -1,0 +1,13 @@
+#!./run.js
+% Entry point for the Lithp REPL.
+%
+% vim: set syntax=lithp noet ts=4:
+% See syntax file in node_modules/lithp/syntax/vim/lithp.vim
+(
+	(import "modules/repl")
+
+	(print "Welcome to Lithp v" (host-version) "running on" (host))
+	(print "Type \\q or an empty string to exit.")
+
+	(repl-loop)
+)

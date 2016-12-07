@@ -35,6 +35,8 @@ builtin('stdin', [], () => process.stdin);
 builtin('stdout', [], () => process.stdout);
 builtin('stderr', [], () => process.stderr);
 
+builtin('set-top-level', ['Bool'], Bool => global._lithp.set_toplevel = (Bool === Atom('true')));
+
 exports.setup = function(lithp) {
 	var count = 0;
 	for(var k in builtins) {

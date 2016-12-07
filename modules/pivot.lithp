@@ -5,16 +5,19 @@
 % Example: (pivot 20 (list 1 5 2 2) (list + * / -)) == (list (tuple * 1 5) (tuple * 2) (tuple * 2))
 %
 (
+	(platform ext)
+
 	(import lists)
 	(import random)
 	(import symbols)
 
-	(var AttemptsDefault 1000)
+	(var AttemptsDefault 50000)
 
 	(def pivot #Desired,Nums,Ops :: (
 		(var Current 0)
 		(var Result nil)
 		(var AttemptsRemaining (get AttemptsDefault))
+		(var LastPrintNum (get AttemptsRemaining))
 		(while ((and (!= Current Desired) (> AttemptsRemaining 0))) (
 			% Random approach. lol.
 			(var OpsPadded (map (tail Nums) (scope #N :: ((random-list-item Ops)))))
@@ -33,7 +36,12 @@
 				(set Result (get Str))
 			))
 			(set AttemptsRemaining (- AttemptsRemaining 1))
+			(if (>= (- LastPrintNum AttemptsRemaining) 100) (
+				(set LastPrintNum (get AttemptsRemaining))
+				(invoke (stdout) write (+ "\r" LastPrintNum))
+			))
 		))
+		(invoke (stdout) write "...Success:\n")
 		(get Result)
 	))
 
@@ -43,9 +51,9 @@
 		(var Desired 20) % 1 * 5 * 2 + 2
 		(print (pivot Desired Numbers Operators))
 		(set Numbers (list 0 1 2 4 8 16 32))
-		(set Operators (list + * - /)) % << >> | ^ / -))
-		(set Desired 63)
+		(set Operators (list + * - / | ^ ))
+		% << >> | ^ / -))
 		(print (pivot 63 Numbers Operators))
-		(print (pivot 31 Numbers Operators))
+		(print (pivot 64 Numbers Operators))
 	))
 )
