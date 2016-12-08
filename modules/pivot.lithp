@@ -22,32 +22,40 @@
 		(var I 0)
 		(var Permutations (permutations Ops))
 		(var PermutationsLength (length (get Permutations)))
+		(var NumsTail (tail (get Nums)))
+		(var NumsLength (length Nums))
+		(var Str "")
 		(while ((and (!= Current Desired) (> AttemptsRemaining 0))) (
+			(set Str "")
 			(var OpsToTry (index Permutations I))
 			(set I (+ 1 (get I)))
 			(if (>= I PermutationsLength) (
 				(set I 0)
 			))
-			(var OpsPadded (map (tail Nums) (scope #N :: ((list-rand OpsToTry)))))
-			(var Str "")
-			(each-idx Nums (scope #N,Idx :: (
-				(var Op (+ "" (index OpsPadded Idx)))
-				(if (!= "" Op) (
-					(set Str (+ Str "(" Op " " N " "))
-				) (else (
-					(set Str (+ Str N ")"))
+			(var X 0)
+			(var OptsToTryLength (length OpsToTry))
+			(while ((and (< X OptsToTryLength) (!= Current Desired))) (
+				(set X (+ 1 (get X)))
+				(var OpsPadded (map NumsTail (scope #N :: ((list-rand OpsToTry)))))
+				(each-idx Nums (scope #N,Idx :: (
+					(var Op (+ "" (index OpsPadded Idx)))
+					(if (!= "" Op) (
+						(set Str (+ Str "(" Op " " N " "))
+					) (else (
+						(set Str (+ Str N ")"))
+					)))
 				)))
-			)))
-			(set Str (+ Str (repeat ")" (length Nums))))
-			(set Current (eval Str))
-			(if (== Current Desired) (
-				(set Result (get Str))
+				(set Str (+ Str (repeat ")" NumsLength)))
+				(set Current (eval Str))
+				(set AttemptsRemaining (- AttemptsRemaining 1))
 			))
-			(set AttemptsRemaining (- AttemptsRemaining 1))
 			(if (>= (- LastPrintNum AttemptsRemaining) 100) (
 				(set LastPrintNum (get AttemptsRemaining))
 				(invoke (stdout) write (+ "\r" LastPrintNum))
 			))
+		))
+		(if (== Current Desired) (
+			(set Result (get Str))
 		))
 		(invoke (stdout) write "...Success:\n")
 		(get Result)
