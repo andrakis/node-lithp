@@ -1,7 +1,5 @@
 % Provide functions working with lists.
 (
-	(platform ext)
-
 	% Map a list with a callback.
 	(def map #List,Callback :: (
 		(var R (list))

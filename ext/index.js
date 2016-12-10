@@ -34,20 +34,6 @@ function builtin (name, params, body) {
 // See lib/builtins.js for more examples.
 builtin("count-params/*", [], Params => Params.length);
 
-builtin('stdin', [], () => process.stdin);
-builtin('stdout', [], () => process.stdout);
-builtin('stderr', [], () => process.stderr);
-
-builtin('set-top-level', ['Bool'], Bool => global._lithp.set_toplevel = (Bool === Atom('true')));
-
-builtin('index-set', ['List', 'Index', 'Value'], (List, Index, Value) => {
-	List[Index] = Value;
-	return List;
-});
-
-builtin('list-fill', ['Length', 'Value'], (Length, Value) => new Array(Length).fill(Value));
-builtin('list-rand', ['List'], List => List[Math.floor(Math.random() * List.length)]);
-
 exports.setup = function(lithp) {
 	var count = 0;
 	for(var k in builtins) {
