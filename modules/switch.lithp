@@ -16,8 +16,6 @@
 %  (default Action#Value::)  If no matches found, this action is performed.
 %                            It is given the value passed to switch.
 (
-	(platform v1)
-
 	% A parsing error presently prevents the following atoms from being
 	% parsed correctly. We instead make functions for them that return
 	% the atoms.
@@ -37,18 +35,14 @@
 		))
 	))
 	(def switch #Value,Handlers :: (
-		(if (== 0 (length Handlers)) (
-			(throw "No handlers given to switch/2")
-		))
 		(var Result nil)
 		(var ResultSet false)
 		(var DefaultValue nil)
-		(var Switch_Inner (scope #List :: (
-			(var Head (head List))
-			(var Tail (tail List))
-			% (print "Calling head: " Head)
+		(while ((and (! ResultSet) (> (length Handlers) 0))) (
+			(var Head (head Handlers))
+			(var Tail (tail Handlers))
+			(set Handlers (get Tail))
 			(var InnerResult (call Head Value))
-			% (print "Inner Result: " InnerResult)
 			(if (== ok (index InnerResult 0)) (
 				(set Result (index InnerResult 1))
 				(set ResultSet true)
@@ -57,20 +51,14 @@
 					(set DefaultValue (index InnerResult 1))
 				))
 			)))
-			(if (and (!= 0 (length Tail)) (== ResultSet false)) (
-				(call Switch_Inner Tail)
-			) (else (
-				(if (== ResultSet false) (DefaultValue)
-				    (else (Result))
-				))
-			))
-		)))
-		(call Switch_Inner Handlers)
+		))
+		(? ResultSet Result DefaultValue)
 	))
 	(def switch/* #Args :: (
 		(switch (head Args) (tail Args))
 	))
-	% This section is disabled. It tests the implementation.
+
+	% To enable this section, pass -DTEST to run.js
 	(if (== true (get-def 'TEST')) (
 		(print "Debug is on, running tests")
 		(var Case1 (case 1 # :: ("one")))
@@ -78,10 +66,9 @@
 		(var Case3 (case 3 # :: ("three")))
 		(var Case4 (case 4 # :: ("four")))
 		(var Default (default #Given :: ((+ "Other: " Given))))
-		(var Value 3)
-		(print (switch Value (list Case1 Case2 Case3 Case4 Default)))
-		% Note trailing space. Parser bug, not yet fixed.
-		(print (switch Value (list 
+		(var Value 1)
+		(print (switch Value Case1 Case2 Case3 Case4 Default))
+		(print (switch Value (list
 			(case 1 # :: ("one"))
 			(case 2 # :: ("two"))
 			(case 3 # :: ("three"))
