@@ -1,0 +1,18 @@
+% Module: buffer
+%
+% Provides functions for working with buffers.
+(
+	(var Buffer (index (require "buffer") "Buffer"))
+
+	(var DefaultBufferSize 1024)
+	(def buffer # :: ((buffer DefaultBufferSize)))
+	(def buffer #Size :: (
+		(call Buffer Size)
+	))
+
+	(export-global buffer/0 buffer/1)
+
+	(if (get-def 'TEST') (
+		(print "A buffer: " (buffer))
+	))
+)

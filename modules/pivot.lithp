@@ -19,9 +19,16 @@
 		(var Result nil)
 		(var AttemptsRemaining (get AttemptsDefault))
 		(var LastPrintNum (get AttemptsRemaining))
+		(var I 0)
+		(var Permutations (permutations Ops))
+		(var PermutationsLength (length (get Permutations)))
 		(while ((and (!= Current Desired) (> AttemptsRemaining 0))) (
-			% Random approach. lol.
-			(var OpsPadded (map (tail Nums) (scope #N :: ((random-list-item Ops)))))
+			(var OpsToTry (index Permutations I))
+			(set I (+ 1 (get I)))
+			(if (>= I PermutationsLength) (
+				(set I 0)
+			))
+			(var OpsPadded (map (tail Nums) (scope #N :: ((list-rand OpsToTry)))))
 			(var Str "")
 			(each-idx Nums (scope #N,Idx :: (
 				(var Op (+ "" (index OpsPadded Idx)))

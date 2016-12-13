@@ -1,0 +1,44 @@
+% Module: stream
+%
+% Provides functions for working with streams.
+(
+	(platform ext)
+
+	(import buffer)
+
+	(var FS (require "fs"))
+
+	(def isTTY #Stream :: (
+		(? (== (true) (index (stdin) isTTY)) true false)
+	))
+
+	(def readInputStream # :: (
+		(if (isTTY (stdin)) (
+			("")
+		) (else (
+			(read-stream-to-buffer (stdin))
+		)))
+	))
+
+	(var BufferSize 256)
+
+	(def stream-fd #Stream :: ((index Stream fd)))
+
+	(def read-stream-to-buffer #Stream :: (
+		(var Result "")
+		(var BytesRead 1)
+		(var Buf (buffer BufferSize))
+		(while ((> BytesRead 0)) (
+			(set BytesRead 0)
+			(try (
+				(set BytesRead (invoke FS readSync (stream-fd Stream) Buf 0 BufferSize))
+				(set Result (+ Result (to-string Buf (null) 0 BytesRead)))
+			) #E :: (
+				(atom nil)
+			))
+		))
+		(get Result)
+	))
+
+	(export-global isTTY/1 stream-fd/1 read-stream-to-buffer/1 readInputStream/0)
+)

@@ -55,6 +55,36 @@
 
 	(export-global map/2 foldl/3 each/2 seq/2 seq/3)
 
+	(var PermutationsPossibilities (list 0 1 2 6 24 120 720 5040 40320 362880 3628800 39916800 479001600))
+
+	% Based on code from: http://stackoverflow.com/questions/9960908/permutations-in-javascript/37580979#37580979
+	% Implements [Heap's method](http://homepage.math.uiowa.edu/~goodman/22m150.dir/2007/Permutation%20Generation%20Methods.pdf)
+	(def permutations #List :: (
+		(var Length (length List))
+		(var Result (list-fill (index PermutationsPossibilities Length) 0))
+		(var C (list-fill Length 0))
+		(var I 1)
+		(var J 1)
+		(index-set Result 0 (slice List))
+		(while ((< I Length)) (
+			(if (< (index C I) I) (
+				(var K (? (@ I 2) (index C I) 0))
+				(var P (index List I))
+				(index-set List I (index List K))
+				(index-set List K P)
+				(index-set C I (+ 1 (index C I)))
+				(set I 1)
+				(index-set Result J (slice List))
+				(set J (+ 1 (get J)))
+			) (else (
+				(index-set C I 0)
+				(set I (+ 1 (get I)))
+			)))
+		))
+		(get Result)
+	))
+	(export-global permutations/1)
+
 	(def sum #L :: ((foldl L 0 #N,A :: ((+ N A)))))
 	(def prod #L :: ((foldl L 1 #N,A :: ((* A N)))))
 	(export-global sum/1 prod/1)
@@ -89,6 +119,7 @@
 		(print "Reverse seq test:" (seq 5 1))
 		(print "Sum test:" (sum SampleList))
 		(print "Prod test:" (prod SampleList))
+		(print "Permutations test: " (permutations (list 1 2 3)))
 	))
 
 )
