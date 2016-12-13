@@ -7,7 +7,7 @@
 	(import "modules/repl")
 
 	(print "Welcome to Lithp v" (host-version) "running on" (host))
-	(print "Type \\q or an empty string to exit.")
+	(print "Type \\q exit. Type ? for help.")
 
 	(repl-loop)
 )

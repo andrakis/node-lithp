@@ -8,34 +8,65 @@
 	(platform ext)          % For stderr/0, stdout/0, stdin/0, set-top-level/1
 	(import readline)
 	(import stderr)
+	(import switch)
 
 	(var ContinueLoop true)
 	(var _ nil)
+	(var DebugMode false)
+	(var Result nil)
+
+	(def nil # :: ((atom "nil")))
+
+	(def local-eval (scope #Code :: (
+		(if DebugMode (
+			(lithp-debug true)
+		))
+		(set E (eval Code))
+		(if DebugMode (
+			(lithp-debug false)
+		))
+		(get E)
+	)))
+
+	(var CaseQuit (case "\\q" (scope # :: ((set ContinueLoop false)(nil)))))
+	(var CaseUnderscore (case "_" (scope # :: (get _))))
+	(var CaseDebugMode (case "\\d" (scope # :: (
+		(set DebugMode (! (get DebugMode)))
+		(print "Debug mode now " (? DebugMode "ON" "off"))
+		(nil)
+	))))
+	(var DisplayHelp # :: (
+		(print "Type standard Lithp expressions.")
+		(print "Example: (set Fac #N::((if(== 0 N)((1))((* N(call Fac(- N 1)")
+		(print "")
+		(print "The following additional commands are available:")
+		(print "  \\q       Quit the REPL")
+		(print "  \\d       Toggle DEBUG mode")
+		(print "  _        Print the last value")
+		(print "")
+		(nil)
+	))
+	(var CaseHelp1 (case "?" DisplayHelp))
+	(var CaseHelp2 (case "help" DisplayHelp))
+
+	(var CaseDefault (default (scope #Input :: (
+		(set-top-level true)
+		(try (
+			(local-eval (+ "(" Input ")"))
+		) #E :: (
+			(stderr-write (+ "\nError during eval: " (to-string E) "\n"))
+		))
+	))))
+
+	(var CaseList (list CaseQuit CaseUnderscore CaseDebugMode CaseHelp1
+	                    CaseHelp2 CaseDefault))
+
 	(var LoopHandler (scope #Input :: (
-		(var Result nil)
-		(if (== "\\q" Input) (
-			(set ContinueLoop false)
-		) (else (
-			(if (== "_" Input) (
-				(set Result (eval "(get _)"))
-			) (else (
-				(set-top-level true)
-				(try (
-					(set Result (eval Input))
-				) #E :: (
-					(try (
-						(stderr-write (+ "\nError during eval: " (to-string E) "\n"))
-						(stderr-write "Attempting as variable:\n")
-						(set Result (eval (+ "(" Input ")")))
-					) #E :: (
-						(stderr-write (+ "\nError during eval: " (to-string E) "\n"))
-					))
-				))
-			)))
-		)))
-		(if (!= Result nil) (
+		(var Tmp (switch Input CaseList))
+		(if (!= Tmp nil) (
+			(set Result (get Tmp))
 			(print "Success, result: " Result)
-			(set _ (get Result))
+			(set "_" (get Result))
 		))
 		(set-top-level false)
 		(repl-loop)

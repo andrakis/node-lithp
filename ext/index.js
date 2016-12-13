@@ -37,6 +37,10 @@ builtin('stderr', [], () => process.stderr);
 
 builtin('set-top-level', ['Bool'], Bool => global._lithp.set_toplevel = (Bool === Atom('true')));
 
+builtin('lithp-debug', ['Bool'], Bool =>
+	lithp.set_debug_flag(Bool === Atom('true'))
+);
+
 exports.setup = function(lithp) {
 	var count = 0;
 	for(var k in builtins) {
