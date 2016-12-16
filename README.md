@@ -29,8 +29,7 @@ Language Examples
 
 The main examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
 
-Some following examples are implemented in `lib/samples.js`, however these are hand
-compiled and outdated.
+Additional examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
 
 Simple test
 -----------
@@ -81,8 +80,24 @@ given number, and call it.
 		)
 	))
 	(set Test 10)
-		(print "factorial of " Test ": " (fac Test))
+	(print "factorial of " Test ": " (fac Test))
 	)
+
+A tail recursive function
+-------------------------
+
+Tail recursion is implemented via the builtin recurse/* function.
+
+	((def fac-recursive #N :: (
+		(def inner #N,Acc :: (
+			(if (== 0 N) (
+				(Acc)
+			) (else (
+				(recurse inner (- N 1) (* N Acc))
+			)))
+		))
+	))
+	(print (fac-recursive 50)))
 
 Running some sample code
 ========================
@@ -107,7 +122,7 @@ calls.
 Language Status
 ===============
 
-Version: 0.9.2 (STABLE)
+Version: 0.9.4 (STABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
@@ -134,7 +149,13 @@ corrected.
 Implemented milestones
 ----------------------
 
+* REPL
+
+  * A REPL is available for Node.js. Simply run `./repl` to start it. Type `?` for help.
+
 * Language enhancements
+
+  * Implemented `recurse/*`, enabling tail recursion.
 
   * Implemented `while/2`, enabling non-recursive looping.
 
@@ -229,6 +250,10 @@ Implemented milestones
 Short term goals
 ----------------
 
+* Package the REPL using browserify to provide an online interpreter.
+
+* Implement a Lithp package system with library dependancies.
+
 * Serialization of compiled OpChains to binary. Would allow for other Lithp
  interpreters to run parsed code. (A C# interpreter is in progress.)
 
@@ -279,9 +304,9 @@ It also borrows some core ideas from Erlang:
 
 However, features such as destructive assignment are present, which differs
 from Erlang. A number of other useful features such as pattern matching,
-list comprehension, binaries, `module:function` calls, and tail recursion
-are not implemented. Some of these can be implemented as library functions,
-and others could be implemented by an improved parser and builtin library.
+list comprehension, binaries, and `module:function` calls are not implemented.
+Some of these can be implemented as library functions, and others could be
+implemented by an improved parser and builtin library.
 
 Additionally, one may define functions with an arity of *, which
 passes all parameters in the first parameter:

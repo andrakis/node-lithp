@@ -1,6 +1,6 @@
 {
   "name": "lithp",
-  "version": "0.9.2",
+  "version": "0.9.4",
   "description": "A small Lisp-like language with a tiny interpreter",
   "main": "index.js",
   "scripts": {
@@ -19,8 +19,5 @@
   "bugs": {
     "url": "https://github.com/andrakis/node-lithp/issues"
   },
-  "homepage": "https://github.com/andrakis/node-lithp#readme",
-  "optionalDependencies": {
-    "bignum": "^0.12.5"
-  }
+  "homepage": "https://github.com/andrakis/node-lithp#readme"
 }

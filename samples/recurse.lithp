@@ -1,0 +1,23 @@
+% Sample: recurse
+%
+% Purpose: Demonstrate tail recursion via the recurse/* builtin.
+%
+% Notes:   You must provide the function name of the function you
+%          wish to recurse. Presently this cannot be detected.
+%
+%          Also note that the stack depth remains constant when run
+%          with the debug flag (-d).
+(
+	(def fac-recursive #N :: (
+		(def fac-r-inner #N,Acc :: (
+			(if (== 0 N) (
+				(Acc)
+			) (else (
+				(recurse fac-r-inner (- N 1) (* N Acc))
+			)))
+		))
+		(fac-r-inner N 1)
+	))
+
+	(print (fac-recursive 100))
+)
