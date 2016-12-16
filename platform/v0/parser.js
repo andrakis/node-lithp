@@ -11,7 +11,7 @@
 
 var util = require('util'),
 	inspect = util.inspect;
-var lithp = require(__dirname + '/../../index'),
+var lithp = require( './../../index'),
 	Lithp = lithp.Lithp,
 	parser_debug = lithp.parser_debug,
 	types = lithp.Types,

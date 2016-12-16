@@ -5,7 +5,6 @@
 % Currently only single lines are supported.
 %
 (
-	(platform ext)          % For stderr/0, stdout/0, stdin/0, set-top-level/1
 	(import readline)
 	(import stderr)
 	(import switch)

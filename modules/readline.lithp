@@ -1,7 +1,6 @@
 % Provide Readline functionality from standard NodeJS library.
 (
 	(platform v1)
-	(platform ext)
 	(var Readline (require "readline"))
 	(var RL (invoke Readline "createInterface" (dict
 			(tuple input (stdin))
