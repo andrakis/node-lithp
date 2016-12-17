@@ -1,6 +1,9 @@
 % Provide functions working with lists.
 (
-	% Map a list with a callback.
+	%% @doc Map a list with a callback.
+	%% @param List     list     elements to map
+	%% @param Callback #V::any  callback function. returns a value
+	%% @return list    List of transformed elements
 	(def map #List,Callback :: (
 		(var R (list))
 		(while ((> (length List) 0)) (
@@ -11,7 +14,11 @@
 		R
 	))
 
-	% Foldl
+	%% @doc Fold a list left with an initial value and return the final value.
+	%% @param List           list  elements to fold
+	%% @param Current=Initial any  initial value
+	%% @param Callback       #Element,Accumulator::any
+	%% @return Current
 	(def foldl #List,Current,Callback :: (
 		(while ((> (length List) 0)) (
 			(set Current (call Callback (head List) Current))
@@ -20,15 +27,12 @@
 		(get Current)
 	))
 
-	% Each. Similar to map but always returns nil.
+	%% @doc Similar to map but always returns nil.
+	%% @param List           list  elements to fold
+	%% @param Current=Initial any  initial value
+	%% @param Callback       #Element,Index::any
+	%% @return nil
 	(def each #List,Callback :: (
-		(while ((> (length List) 0)) (
-			((call Callback (head List)))
-			(set List (tail List))
-		))
-	))
-	
-	(def each-idx #List,Callback :: (
 		(var Idx 0)
 		(while ((> (length List) 0)) (
 			((call Callback (head List) Idx))
@@ -37,16 +41,26 @@
 		))
 	))
 
-	(export-global each-idx/2)
+	% Alias
+	%% @see each/2
+	(def each-idx #List,Callback :: ((each List Callback)))
 
-	% Sequence. Count from N0 to N1.
+	(export-global each/2 each-idx/2)
+
+	%% @see seq/3
 	(def seq #N0,N1 :: (
 		(seq N0 N1 (? (< N0 N1) 1 -1))
 	))
+
+	%% @doc Sequence. Count from N0 to N1.
+	%% @param N0   number  Number to start from
+	%% @param N1   number  Number to count to
+	%% @param Inc  number  Increment per number
+	%% @return list[N0...N1]
 	(def seq #N0,N1,Inc :: (
 		(set L (list))
 		(var N (get N0))
-		(while ((? (>= Inc 1) (<= N N1) (>= N N1))) (
+		(while ((if (>= Inc 1) ((<= N N1)) ((>= N N1)))) (
 			(set L (++ L (list N)))
 			(set N (+ N Inc))
 		))
@@ -57,6 +71,9 @@
 
 	(var PermutationsPossibilities (list 0 1 2 6 24 120 720 5040 40320 362880 3628800 39916800 479001600))
 
+	%% @doc Get all permutations of the given List.
+	%% @param List   list  elements for permutations
+	%% @return list  all   permutations for given List
 	% Based on code from: http://stackoverflow.com/questions/9960908/permutations-in-javascript/37580979#37580979
 	% Implements [Heap's method](http://homepage.math.uiowa.edu/~goodman/22m150.dir/2007/Permutation%20Generation%20Methods.pdf)
 	(def permutations #List :: (
@@ -67,12 +84,13 @@
 		(var J 1)
 		(index-set Result 0 (slice List))
 		(while ((< I Length)) (
-			(if (< (index C I) I) (
-				(var K (? (@ I 2) (index C I) 0))
+			(var CI (index C I))
+			(if (< CI I) (
+				(var K (? (@ I 2) (get CI) 0))
 				(var P (index List I))
 				(index-set List I (index List K))
 				(index-set List K P)
-				(index-set C I (+ 1 (index C I)))
+				(index-set C I (+ 1 CI))
 				(set I 1)
 				(index-set Result J (slice List))
 				(set J (+ 1 (get J)))
@@ -85,23 +103,46 @@
 	))
 	(export-global permutations/1)
 
+	%% @doc Calculate sum of given list
+	%% @param L=List   list  elements to sum up
+	%% @return number
 	(def sum #L :: ((foldl L 0 #N,A :: ((+ N A)))))
+
+	%% @doc Calculate product of given list
+	%% @param L=List   list  elements to calculate product of
+	%% @return number
 	(def prod #L :: ((foldl L 1 #N,A :: ((* A N)))))
 	(export-global sum/1 prod/1)
 
+	%% @doc Filter a list using a predicate.
+	%% @param List       list        elements
+	%% @param Predicate  #Ele::bool  Predicate function
+	%% @return list
+%	(def filter #List,Predicate :: (
+%		(var Result (list))
+%		(while ((> (length List) 0)) (
+%			(var Ele (head List))
+%			(if (call Predicate Ele) (
+%				(set Result (++ Result (list Ele)))
+%			))
+%			(set List (tail List))
+%		))
+%		(get Result)
+%	))
 	(def filter #List,Predicate :: (
-		(var Result (list))
-		(while ((> (length List) 0)) (
-			(var Ele (head List))
-			(if (call Predicate Ele) (
-				(set Result (++ Result (list Ele)))
-			))
-			(set List (tail List))
-		))
-		(get Result)
+		(foldl List (list) (scope #Ele,Acc :: (
+			(++ Acc (? (call Predicate Ele) (list Ele) (list)))
+		)))
 	))
 
 	(export-global filter/2)
+
+	%% @doc Get the maximum 
+	%% TODO: handle list type
+	(def max/* #List :: ((foldl (tail List) (head List) #V,A :: ((? (> V A) V A)))))
+	(def min/* #List :: ((foldl (tail List) (head List) #V,A :: ((? (< V A) V A)))))
+
+	(export-global min/* max/*)
 
 	% Pass -DTEST to livium.lithp to enable.
 	(if (== true (get-def 'TEST')) (
@@ -120,6 +161,9 @@
 		(print "Sum test:" (sum SampleList))
 		(print "Prod test:" (prod SampleList))
 		(print "Permutations test: " (permutations (list 1 2 3)))
+		(print "Max test:" (max 10 5 9 4 8 3 6 2 1 0))
+		(print "Min test:" (min 10 5 9 4 8 3 6 2 1 0))
+		(print "Filter test:" (filter (seq 1 10) #V :: (== 0 (@ V 2))))
 	))
 
 )
