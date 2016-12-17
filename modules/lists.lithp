@@ -130,8 +130,18 @@
 %		(get Result)
 %	))
 	(def filter #List,Predicate :: (
-		(foldl List (list) (scope #Ele,Acc :: (
-			(++ Acc (? (call Predicate Ele) (list Ele) (list)))
+		(filter-inner List Predicate (list))
+	))
+	(def filter-inner #List,Predicate,Acc :: (
+		(if (== 0 (length List)) (
+			(Acc)
+		) (else (
+			(var Ele (head List))
+			(if (call Predicate Ele) (
+				(recurse filter-inner (tail List) Predicate (++ Acc (list Ele)))
+			) (else (
+				(recurse filter-inner (tail List) Predicate Acc)
+			)))
 		)))
 	))
 
