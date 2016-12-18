@@ -14,7 +14,7 @@ It aims to provide a basic framework as powerful as JavaScript. Much of this
 is accomplished through the use of native Lithp [modules](https://github.com/andrakis/node-lithp/tree/master/modules)
 and some powerful builtin functions allowing use of native Node.js modules.
 
-The [readfile example](https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp) demonstrates all of the above features, importing the
+The [readfile example](https://github.com/andrakis/node-lithp/blob/master/samples/readfile.lithp) demonstrates all of the above features, importing the
 Node.js `fs` module, and calling `fs.readFileSync` and `fs.readFile` using a
 callback and a Lithp function to print the results.
 
@@ -25,7 +25,7 @@ debug statements and detailed comments.
 Language Examples
 =================
 
-The main examples are in the [l_src](https://github.com/andrakis/node-lithp/tree/master/l_src) directory.
+The main examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
 
 Additional examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
 
@@ -138,12 +138,12 @@ You have two options:
   * Run a script file
 
      Use the file `run.js` in the top level directory, and specify a path to a Lithp
-     source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
+     source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/samples) that work with the current parser.
 
-    To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
+    To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/samples/factorial.lithp):
 
     ```
-        node run.js l_src/factorial.lithp
+        node run.js samples/factorial.lithp
     ```
 
     You can see the internals of what the parser and interpreter are doing by passing
@@ -162,7 +162,7 @@ currently supports all the constructs it should - these are being corrected
 as they are found.
 
 Modules are supported, and a standard library is starting to be expanded upon.
-For more information on modules, see the [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) example for how functions may be defined, exported,
+For more information on modules, see the [module](https://github.com/andrakis/node-lithp/blob/master/samples/module.lithp) example for how functions may be defined, exported,
 and imported.
 
 See `run.js` or the `Running some sample code` section for information on how
@@ -232,7 +232,7 @@ Implemented milestones
     OpChains the interpreter needs.
 
   * It is designed to be powerful enough to parse enough Lithp code with which
-    to implement a better parser. To this end, there are numerous [examples](https://github.com/andrakis/node-lithp/tree/master/l_src)
+    to implement a better parser. To this end, there are numerous [examples](https://github.com/andrakis/node-lithp/tree/master/samples)
     demonstrating the language and what the parser is capable of parsing.
 
   * It is considered feature complete. Only bugfixes are to be implemented.
@@ -433,7 +433,7 @@ Modules
 
 Modules allow functions from one script to be exported to another script.
 
-An example is provided, consisting of a [module](https://github.com/andrakis/node-lithp/blob/master/l_src/module_lib.lithp) and a [script](https://github.com/andrakis/node-lithp/blob/master/l_src/module.lithp) to call it.
+An example is provided, consisting of a [module](https://github.com/andrakis/node-lithp/blob/master/samples/module_lib.lithp) and a [script](https://github.com/andrakis/node-lithp/blob/master/samples/module.lithp) to call it.
 
 The module is a standard Lithp script that contains calls to export/* to
 note symbols to export:
@@ -466,7 +466,7 @@ Extended Examples
 Read a file
 -----------
 
-Note: this example is further demonstrated in [l_src/readfile.lithp](https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp),
+Note: this example is further demonstrated in [samples/readfile.lithp](https://github.com/andrakis/node-lithp/blob/master/samples/readfile.lithp),
 and relies on functions provided by Platform 1.
 
 Additionally, it is using the Node.js API. It will be replaced with native
