@@ -10,18 +10,16 @@ carry out the basic execution, and builtin library functions to provide
 control flow, function definitions, and basic arithmatic and similar
 operations.
 
-It aims to provide a basic framework as powerful as JavaScript. To this end,
-one of the current features is the abililty to import Node.js modules, call
-the imported functions passing native Lithp values, and provide a "bridge"
-function to allow functions that require JavaScript callbacks to be used with
-Lithp functions directly.
+It aims to provide a basic framework as powerful as JavaScript. Much of this
+is accomplished through the use of native Lithp [modules](https://github.com/andrakis/node-lithp/tree/master/modules)
+and some powerful builtin functions allowing use of native Node.js modules.
 
 The [readfile example](https://github.com/andrakis/node-lithp/blob/master/l_src/readfile.lithp) demonstrates all of the above features, importing the
 Node.js `fs` module, and calling `fs.readFileSync` and `fs.readFile` using a
 callback and a Lithp function to print the results.
 
-The main interpreter is around 350 lines of sparse code (not counting
-structures and runtime library.) This size would be even lower without the
+The [main interpreter](https://github.com/andrakis/node-lithp/blob/master/lib/interpreter.js) is around 270 lines of sparse code.
+This size would be even lower without the
 debug statements and detailed comments.
 
 Language Examples
@@ -99,30 +97,63 @@ Tail recursion is implemented via the builtin recurse/* function.
 	))
 	(print (fac-recursive 50)))
 
+List comprehension
+------------------
+
+List comprehension is provided by the `lists` module. Here is an example usage:
+
+	Code:
+		(import lists)
+		% Supply 3 generators
+		(set Generators (list (seq 1 10) (seq 1 5) (seq 1 3)))
+		% Handler simply returns a list of given numbers
+		(set Handler #X,Y,Z::((list X Y Z)))
+		% Filter checks that X, Y, and Z are divisible by two using modulo (@).
+		(set Filter #X,Y,Z::((and (== 0 (@ X 2)) (== 0 (@ Y 2)) (== 0 (@ Z 2)))))
+		(print "List comprehension test: " (lcomp Handler Generators Filter))
+	Output:
+		List comprehension test:  [ [ 2, 2, 2 ],
+		  [ 2, 4, 2 ],
+		  [ 4, 2, 2 ],
+		  [ 4, 4, 2 ],
+		  [ 6, 2, 2 ],
+		  [ 6, 4, 2 ],
+		  [ 8, 2, 2 ],
+		  [ 8, 4, 2 ],
+		  [ 10, 2, 2 ],
+		  [ 10, 4, 2 ] ]
+
 Running some sample code
 ========================
 
-Use the file `run.js` in the top level directory, and specify a path to a Lithp
-source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
+You have two options:
 
-To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
+  * The REPL
 
-```
-	node run.js l_src/factorial.lithp
-```
+     The REPL, or Read Execute Print Loop, is available in the top level directory. To start it invoke:
 
-You can see the internals of what the parser and interpreter are doing by passing
-the `-d` flag to run.js to enable debug mode. This prints out a tree of function
-calls, allowing you to follow the interpreters call sequence.
+		./repl          or
+		./repl.lithp
 
-Note that since imported functions run in their own instance, the debug output will
-change slightly to include the instance id of the interpreter handling the function
-calls.
+  * Run a script file
+
+     Use the file `run.js` in the top level directory, and specify a path to a Lithp
+     source file. There are [several provided](https://github.com/andrakis/node-lithp/tree/master/l_src) that work with the current parser.
+
+    To run the [factorial example](https://github.com/andrakis/node-lithp/blob/master/l_src/factorial.lithp):
+
+    ```
+        node run.js l_src/factorial.lithp
+    ```
+
+    You can see the internals of what the parser and interpreter are doing by passing
+    the `-d` flag to run.js to enable debug mode. This prints out a tree of function
+    calls, allowing you to follow the interpreters call sequence.
 
 Language Status
 ===============
 
-Version: 0.9.4 (STABLE)
+Version: 0.9.6 (STABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
@@ -148,6 +179,14 @@ corrected.
 
 Implemented milestones
 ----------------------
+
+* Modules
+
+  * A list comprehension function, `lcomp`, is available in the [lists module](https://github.com/andrakis/node-lithp/blob/master/modules/lists.lithp)
+
+  * The same module also provides a flat-map function.
+
+  * Lists module has been improved with use of recursive functions.
 
 * REPL
 

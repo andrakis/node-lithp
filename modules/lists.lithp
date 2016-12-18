@@ -1,17 +1,24 @@
 % Provide functions working with lists.
 (
-	%% @doc Map a list with a callback.
-	%% @param List     list     elements to map
-	%% @param Callback #V::any  callback function. returns a value
-	%% @return list    List of transformed elements
-	(def map #List,Callback :: (
-		(var R (list))
-		(while ((> (length List) 0)) (
-			(set R (++ R (list (call Callback (head List)))))
-			(set List (tail List))
+	(if (get-def 'NATIVE') (
+		%% @doc Map a list with a callback.
+		%% @param List     list     elements to map
+		%% @param Callback #V::any  callback function. returns a value
+		%% @return list    List of transformed elements
+		%% @builtin        Builtin for speed reasons.
+		%% @condtional     NATIVE
+		%% @cond-show      Use native function instead of builtin.
+		(def map #List,Callback :: (
+			(map-inner (list) List Callback)
 		))
-		% Parsing bug: must be 1 char
-		R
+	))
+
+	(def map-inner #Acc,List,Callback :: (
+		(if (== 0 (length List)) (
+			(Acc)
+		) (else (
+			(recurse map-inner (++ Acc (list (call Callback (head List)))) (tail List) Callback)
+		)))
 	))
 
 	%% @doc Fold a list left with an initial value and return the final value.
@@ -20,11 +27,11 @@
 	%% @param Callback       #Element,Accumulator::any
 	%% @return Current
 	(def foldl #List,Current,Callback :: (
-		(while ((> (length List) 0)) (
-			(set Current (call Callback (head List) Current))
-			(set List (tail List))
-		))
-		(get Current)
+		(if (== 0 (length List)) (
+			(Current)
+		) (else (
+			(recurse foldl (tail List) (call Callback (head List) Current) Callback)
+		)))
 	))
 
 	%% @doc Similar to map but always returns nil.
@@ -33,12 +40,16 @@
 	%% @param Callback       #Element,Index::any
 	%% @return nil
 	(def each #List,Callback :: (
-		(var Idx 0)
-		(while ((> (length List) 0)) (
-			((call Callback (head List) Idx))
-			(set List (tail List))
-			(set Idx (+ Idx 1))
-		))
+		(each-inner 0 List Callback)
+	))
+
+	(def each-inner #Idx,List,Callback :: (
+		(if (== 0 (length List)) (
+			(atom nil)
+		) (else (
+			(call Callback (head List) Idx)
+			(recurse each-inner (+ Idx 1) (tail List) Callback)
+		)))
 	))
 
 	% Alias
@@ -118,17 +129,6 @@
 	%% @param List       list        elements
 	%% @param Predicate  #Ele::bool  Predicate function
 	%% @return list
-%	(def filter #List,Predicate :: (
-%		(var Result (list))
-%		(while ((> (length List) 0)) (
-%			(var Ele (head List))
-%			(if (call Predicate Ele) (
-%				(set Result (++ Result (list Ele)))
-%			))
-%			(set List (tail List))
-%		))
-%		(get Result)
-%	))
 	(def filter #List,Predicate :: (
 		(filter-inner List Predicate (list))
 	))
@@ -147,20 +147,96 @@
 
 	(export-global filter/2)
 
-	%% @doc Get the maximum 
-	%% TODO: handle list type
-	(def max/* #List :: ((foldl (tail List) (head List) #V,A :: ((? (> V A) V A)))))
-	(def min/* #List :: ((foldl (tail List) (head List) #V,A :: ((? (< V A) V A)))))
+	%% @doc Get the maximum value from a given list.
+	%%      Handles multiple stack lists.
+	%% @param   List   list[number]  List of numbers. Automatically flattened.
+	%% @return  number               The maximum value found.
+	(def max/* #List :: (
+		(set List (flatten List))
+		(foldl (tail List) (head List) #V,A :: ((? (> V A) V A)))
+	))
+
+	%% @doc Get the minimum value from a given list.
+	%%      Handles multiple stack lists.
+	%% @param   List   list[number]  List of numbers. Automatically flattened.
+	%% @return  number               The minimum value found.
+	(def min/* #List :: (
+		(set List (flatten List))
+		(foldl (tail List) (head List) #V,A :: ((? (< V A) V A)))
+	))
 
 	(export-global min/* max/*)
+
+	(if (get-def 'NATIVE') (
+		%% @doc Perform a flat map of the given List with Callback.
+		%% @param   List      list[E->any]  List of values to map.
+		%% @param   Callback  fun(E)::E     Mapping callback function.
+		%% @return  Flat map of the list.
+		%%
+		%% @example
+		%%
+		%%    (print "Flat map:" (flat-map (list 0 1 2 3 4 5) #X :: (
+		%%        (list X (+ X 1))
+		%%    )))
+		%%
+		%%  Output:
+		%%    Flat map: [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6]
+		%% @end
+		%% @builtin        Moved to builtins for speed reasons
+		%% @conditional    NATIVE
+		%% @cond-show      Use native function instead of builtin.
+		(def flat-map #List,Callback :: (
+			(apply ++ (++ (list) (map List Callback)))
+		))
+	))
+
+	%% @doc List comprehension.
+	%% @param Handler     #/*::*     A function that accepts the same number of arguments
+	%%                               as the number of generators.
+	%% @param Generators  list(list,...)     Generators, ie list of values.
+	%% @param Filter      #/*::bool  A function that accepts the same number of arguments
+	%%                               as the number of generators. Returns boolean.
+	%% @return A new list with comprehended input
+	(def lcomp #Handler,Generators,Filter :: (
+		(lcomp-inner (list) (head Generators) Handler (tail Generators) Filter)
+	))
+
+	%% @see lcomp/3
+	(def lcomp #Handler,Generators :: (
+		(lcomp Handler Generators # :: ((atom true)))
+	))
+
+	%% @private
+	%% @doc Performs the inner list comprehension.
+	%%      If further generators are present, this function is called recursively
+	%%      until no generators are left.
+	%%      At that point, Filter is called and if successful returns Callback of
+	%%      values.
+	(def lcomp-inner #Base,List,Handler,Generators,Filter :: (
+		(flat-map List (scope #Ele :: (
+			(var Current (++ Base (list Ele)))
+			(if (> (length Generators) 0) (
+				(lcomp-inner Current (head Generators) Handler (tail Generators) Filter)
+			) (else (
+				(if (apply Filter Current) (
+					(list (apply Handler Current))
+				) (else (
+					(list)
+				)))
+			)))
+		)))
+	))
+
+	(export-global lcomp/3 lcomp/2)
 
 	% Pass -DTEST to livium.lithp to enable.
 	(if (== true (get-def 'TEST')) (
 		(var SampleList (list 1 2 4 8 16 32))
+		(print "Each test: " (each SampleList #N :: ((print N))))
+		(print "Each-idx test: " (each-idx SampleList #N,I :: ((print (++ "" I ": " N)))))
 		(print "Map test: " (map SampleList #N :: ((* N 2))))
 		(print "Foldl test: " (foldl SampleList 0 #N,A :: ((+ N A))))
-		(print "Foldl test: " (foldl SampleList 0 #N,A :: ((+ N A))))
-		(print "Foldl test: " (foldl SampleList 0 #N,A :: ((+ N A))))
+		(print "Foldl test: " (foldl SampleList 0 #N,A :: ((<< N A))))
 		(print "Empty map test: " (map (list) #N :: ((* N 2))))
 		(print "Empty foldl test:" (foldl (list) 0 #N,A :: ((+ N A))))
 		(each SampleList #N :: (
@@ -174,6 +250,10 @@
 		(print "Max test:" (max 10 5 9 4 8 3 6 2 1 0))
 		(print "Min test:" (min 10 5 9 4 8 3 6 2 1 0))
 		(print "Filter test:" (filter (seq 1 10) #V :: (== 0 (@ V 2))))
+		(var Generators (list (seq 1 10) (seq 1 5) (seq 1 3)))
+		(var Handler #X,Y,Z::(list (list X Y Z)))
+		(var Filter #X,Y,Z::((and (== 0 (@ X 2)) (== 0 (@ Y 2)) (== 0 (@ Z 2)))))
+		(print "List comprehension test: " (lcomp Handler Generators Filter))
 	))
 
 )
