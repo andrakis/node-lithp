@@ -78,8 +78,7 @@ given number, and call it.
 		)
 	))
 	(set Test 10)
-	(print "factorial of " Test ": " (fac Test))
-	)
+	(print "factorial of " Test ": " (fac Test)))
 
 A tail recursive function
 -------------------------
@@ -91,9 +90,10 @@ Tail recursion is implemented via the builtin recurse/* function.
 			(if (== 0 N) (
 				(Acc)
 			) (else (
-				(recurse inner (- N 1) (* N Acc))
+				(recurse (- N 1) (* N Acc))
 			)))
 		))
+		(inner N 0)
 	))
 	(print (fac-recursive 50)))
 
@@ -153,7 +153,7 @@ You have two options:
 Language Status
 ===============
 
-Version: 0.9.6 (STABLE)
+Version: 0.10.1 (EXPERIMENTAL)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser

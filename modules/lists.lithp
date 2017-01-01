@@ -17,7 +17,7 @@
 		(if (== 0 (length List)) (
 			(Acc)
 		) (else (
-			(recurse map-inner (++ Acc (list (call Callback (head List)))) (tail List) Callback)
+			(recurse (++ Acc (list (call Callback (head List)))) (tail List) Callback)
 		)))
 	))
 
@@ -30,7 +30,7 @@
 		(if (== 0 (length List)) (
 			(Current)
 		) (else (
-			(recurse foldl (tail List) (call Callback (head List) Current) Callback)
+			(recurse (tail List) (call Callback (head List) Current) Callback)
 		)))
 	))
 
@@ -48,7 +48,7 @@
 			(atom nil)
 		) (else (
 			(call Callback (head List) Idx)
-			(recurse each-inner (+ Idx 1) (tail List) Callback)
+			(recurse (+ Idx 1) (tail List) Callback)
 		)))
 	))
 
@@ -138,9 +138,9 @@
 		) (else (
 			(var Ele (head List))
 			(if (call Predicate Ele) (
-				(recurse filter-inner (tail List) Predicate (++ Acc (list Ele)))
+				(recurse (tail List) Predicate (++ Acc (list Ele)))
 			) (else (
-				(recurse filter-inner (tail List) Predicate Acc)
+				(recurse (tail List) Predicate Acc)
 			)))
 		)))
 	))
@@ -229,6 +229,27 @@
 
 	(export-global lcomp/3 lcomp/2)
 
+	(def reverse #L :: ((next reverse L (list))))
+	(def reverse #L,Acc :: (
+		(if (== 0 (length L)) (
+			(Acc)
+		) (else (
+			(recurse (tail L) (++ (list (head L)) Acc))
+		)))
+	))
+
+	(export-global reverse/1)
+
+	(def zip #A,B :: ((zip A B (list))))
+	(def zip #A,B,Acc :: (
+		(if (or (== 0 (length A)) (== 0 (length B))) (
+			(Acc)
+		) (else (
+			(recurse (tail A) (tail B) (++ Acc (list (tuple (head A) (head B)))))
+		)))
+	))
+	(export-global zip/2)
+
 	% Pass -DTEST to livium.lithp to enable.
 	(if (== true (get-def 'TEST')) (
 		(var SampleList (list 1 2 4 8 16 32))
@@ -254,6 +275,8 @@
 		(var Handler #X,Y,Z::(list (list X Y Z)))
 		(var Filter #X,Y,Z::((and (== 0 (@ X 2)) (== 0 (@ Y 2)) (== 0 (@ Z 2)))))
 		(print "List comprehension test: " (lcomp Handler Generators Filter))
+		(print "Reverse test: " (reverse SampleList))
+		(print "Zip test: " (zip (list a b c d) (list 1 2 3 4)))
 	))
 
 )
