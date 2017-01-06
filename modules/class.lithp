@@ -1,0 +1,72 @@
+% Implements a basic class system.
+% At present, inheritance is not supported.
+(
+	(import lists)
+
+	(var CLASS_INIT '__init__')
+	(var CLASS_CLASS '__class__')
+	(var CLASS_FUNCS '__functions__')
+	(var CLASS_INSTC '__instance__')
+
+	(def member-set  #Instance,Name,Value :: ((dict-set Instance Name Value)))
+	(def member-get  #Instance,Name       :: ((dict-get Instance Name)))
+	(def member-present #Instance,Name    :: ((dict-present Instance Name)))
+	(export-global member-set/3 member-get/2 member-present/2)
+
+	(def member-call/* #Args :: (
+		(var Self     (head Args))
+		(set Args     (tail Args))
+		(var Fun      (head Args))
+		% Params includes Self as the first member
+		(var Params   (++ (list Self) (tail Args)))
+		(var Instance (member-get Self CLASS_INSTC))
+		(var Funcs    (member-get Instance CLASS_FUNCS))
+		(var Dest     (member-get Funcs Fun))
+		(apply Dest Params)
+	))
+	(export-global member-call/*)
+
+	(def class/* #Args :: (
+		(var Name (head Args))
+		(var Members (tail Args))
+		(var Instance (dict))
+		(dict-set Instance CLASS_CLASS Name)
+		(dict-set Instance CLASS_FUNCS (dict))
+		(foldl Members Instance #Member,Self :: (
+			(member-set (dict-get Self CLASS_FUNCS) (index Member 0) (index Member 1))
+			(Self)
+		))
+	))
+	(def new/* #Args :: (
+		(var Class (head Args))
+		(var Params (tail Args))
+		(var Instance (dict))
+		(member-set (get Instance) CLASS_INSTC (get Class))
+		(if (member-present (member-get Class CLASS_FUNCS) CLASS_INIT) (
+			(apply member-call (++ (list Instance CLASS_INIT) Params))
+		))
+		(Instance)
+	))
+
+	(export-global class/* new/*)
+
+	(if (get-def 'CLASS_TEST') (
+		(var TestClass (class 'TestClass'
+			(tuple CLASS_INIT #Self,Base :: (
+				(member-set Self base Base)
+			))
+			(tuple 'add' #Self,A,B :: (
+				(to-string (+ A B) (member-get Self base))
+			))
+		))
+
+		% Base 10 version
+		(var Base10 (new TestClass 10))
+		% Base 2 version
+		(var Base2  (new TestClass 2))
+
+		(print (member-call Base10 add 5 10))
+		(print (member-call Base2  add 5 10))
+	))
+)
+
