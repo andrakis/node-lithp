@@ -514,15 +514,22 @@ ParserState.prototype.parseSection = function(it, dest) {
 	return dest;
 }
 
-function BootstrapParser (code) {
+function BootstrapParser (code, opts) {
+	opts = (typeof opts == 'object') ? opts : {};
+	opts['finalize'] = (opts['finalize'] !== undefined) ? opts['finalize'] : true;
+
 	characters = 0;
 	var start = (new Date()).getTime();
 	var state = new ParserState();
 	var it = code.split('').iterator();
 	state.ops = state.parseSection(it, []);
-	var fin = state.finalize();
-	timespentParsing += (new Date()).getTime() - start;
-	return fin;
+	if(opts['finalize']) {
+		var fin = state.finalize();
+		timespentParsing += (new Date()).getTime() - start;
+		return fin;
+	} else {
+		return state;
+	}
 }
 
 exports.BootstrapParser = BootstrapParser;
