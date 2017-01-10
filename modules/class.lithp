@@ -8,6 +8,12 @@
 	(var CLASS_FUNCS '__functions__')
 	(var CLASS_INSTC '__instance__')
 
+	(def class-init  # :: ((CLASS_INIT)))
+	(def class-class # :: ((CLASS_CLASS)))
+	(def class-funcs # :: ((CLASS_FUNCS)))
+	(def class-instc # :: ((CLASS_INSTC)))
+	(export-global class-init/0 class-class/0 class-funcs/0 class-instc/0)
+
 	(def member-set  #Instance,Name,Value :: ((dict-set Instance Name Value)))
 	(def member-get  #Instance,Name       :: ((dict-get Instance Name)))
 	(def member-present #Instance,Name    :: ((dict-present Instance Name)))

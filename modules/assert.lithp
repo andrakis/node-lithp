@@ -1,0 +1,43 @@
+%% assert.lithp
+%% Provides assertion functions.
+(
+	(def assert #Result,Description :: (
+		(if (! Result) (
+			(throw (+ "Assert failed:" Description))
+		))
+		% TODO: Fix parser bug
+		(atom true)
+	))
+	(def assert #Result :: (
+		(if (! Result) (
+			(throw "Assert failed")
+		))
+		% TODO: Fix parser bug
+		(atom true)
+	))
+
+	(export-global assert/1 assert/2)
+
+	(def exception-message #E :: ((index E message)))
+
+	(export-global exception-message/1)
+
+	(if (get-def 'ASSERT_TEST') (
+		(try (
+			(assert (== 0 1) "Mismatch check")
+		) (catch # :: (
+			(print "Mismatch check success")
+		)))
+
+		(try (
+			(assert (!= 0 0) "Equality check")
+			(throw "Equality check issue")
+		) (catch #E :: (
+			(if (== (exception-message E) "Equality check issue") (
+				(throw E)
+			) (else (
+				(print "Equality check success")
+			)))
+		)))
+	))
+)

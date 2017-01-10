@@ -6,6 +6,7 @@
  *
  * Currently uses Platform V0 Bootstrap parser.
  * Supports the following flags:
+ *   -s                     Load stdlib module
  *   -d                     Enable Lithp debug mode.
  *   -p                     Enable bootstrap parser debug mode.
  *   -DNAME[=atom]          Define symbol name. If value not given,
@@ -32,6 +33,7 @@ var BootstrapParser = require('./platform/v0/parser').BootstrapParser;
 
 var args = process.argv.slice(2);
 var file = "";
+var use_stdlib = false;
 var use_debug = false;
 var use_parser_debug = false;
 var use_platform_v1 = false;
@@ -42,6 +44,7 @@ function show_help () {
 	console.error("Usage:");
 	console.error("  " + process.argv[1] + " filename [flags]");
 	console.error("Available flags:");
+	console.error("    -s              Load standard library module");
 	console.error("    -d              Enable Lithp debug mode");
 	console.error("    -p              Enable bootstrap parser debug mode");
 	console.error("    -Dname[=Value]  Define symbol name. If Value not given,");
@@ -53,7 +56,9 @@ function show_help () {
 
 args.forEach(A => {
 	var matches;
-	if(A.match(/^-d(ebug)?$/))
+	if(A.match(/^-s(tdlib)?$/))
+		use_stdlib = true;
+	else if(A.match(/^-d(ebug)?$/))
 		use_debug = true;
 	else if(A.match(/^-p$/))
 		use_parser_debug = true;
@@ -103,6 +108,8 @@ if(print_times) {
 	console.error("Interpreter loaded in " + (new Date().getTime() - _lithp_start ) + "ms");
 }
 var code = fs.readFileSync(file).toString();
+if(use_stdlib)
+	code = "(import stdlib)" + code;
 var result = timeCall("Parse code", () => BootstrapParser(code, file));
 var parsed = result[0];
 instance.setupDefinitions(parsed, file);

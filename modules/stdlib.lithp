@@ -1,0 +1,23 @@
+(
+	(var Modules (list
+		assert       % Assertion functions
+		%bignum      % Disabled by default, requires 'bignum' npm module
+		buffer       % Provide some buffer-related functions
+		cache        % Function result cache
+		class        % Very basic class module
+		file         % File IO
+		lists        % List related functions
+		%readline    % Not a default module, relies on npm provided module.
+		             % Disabled because this is not cross-interpreter friendly.
+		random       % Random number functions
+		switch       % The classic switch function
+		symbols      % Symbol functions
+	))
+	(def import-modules #List :: (
+		(if (!= 0 (length List)) (
+			(import (head List))
+			(recurse (tail List))
+		))
+	))
+	(import-modules Modules)
+)
