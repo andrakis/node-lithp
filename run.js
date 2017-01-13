@@ -13,6 +13,7 @@
  *                          defined as true. Always an atom.
  *   -t                     Print times (parse and run times)
  *   -a                     Print known atoms after script execution.
+ *   -x                     Export source code tree.
  *   -v1                    (Obsolete) Load PlatformV1 library.
  *                          No longer used because platform/1 gives same
  *                          behaviour at run time.
@@ -39,6 +40,7 @@ var use_parser_debug = false;
 var use_platform_v1 = false;
 var print_times = false;
 var print_atoms = false;
+var export_source = false;
 
 function show_help () {
 	console.error("Usage:");
@@ -52,6 +54,7 @@ function show_help () {
 	console.error("    -t              Print times (parse and run times)");
 	console.error("                    to stderr.");
 	console.error("    -a              Print known atoms after script execution.");
+	console.error("*   -x              Export source code tree.");
 }
 
 args.forEach(A => {
@@ -69,6 +72,8 @@ args.forEach(A => {
 		process.exit(3);
 	} else if(A.match(/^-t(imes)?$/))
 		print_times = true;
+	else if(A.match(/^-x(port)?$/))
+		export_source = true;
 	else if((matches = A.match(/-D[A-Za-z-_]+(=.*$)?/g))) {
 		matches.forEach(Def => {
 			var m = A.match(/-D([A-Za-z-_]+)(?:=(.*$))?/);
@@ -110,8 +115,12 @@ if(print_times) {
 var code = fs.readFileSync(file).toString();
 if(use_stdlib)
 	code = "(import stdlib)" + code;
-var result = timeCall("Parse code", () => BootstrapParser(code, file));
+var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
 var parsed = result[0];
+if(export_source) {
+	console.log(inspect(parsed.ops, {depth: null}));
+	process.exit();
+}
 instance.setupDefinitions(parsed, file);
 debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, colors: true})));
 if(print_times)
