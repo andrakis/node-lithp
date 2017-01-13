@@ -22,7 +22,17 @@
 		(var Handler (head Handlers))
 		(var Test (index Handler 0))
 		(var Success (index Handler 1))
-		(if (call Test) (
+		(var TestResult false)
+		(if (is-atom Test) (
+			(set TestResult (get Test))
+		) (else (
+			(if (is-function Test) (
+				(set TestResult (call Test))
+			) (else (
+				(throw "Unknown test given in when/*")
+			)))
+		)))
+		(if (== true TestResult) (
 			(call Success)
 		) (else (
 			% TODO: recurse doesn't work with arity * functions
@@ -61,13 +71,6 @@
 			)
 		))
 
-		% Unlike above test, this one will accept any given value because its
-		% comparison function always returns true.
-		(def test-any #What :: (
-			(when (tuple (scope # :: ((atom true))) (scope # :: (("PASS")))))
-		))
-		(assert (== "PASS" (test-any any)) "when/* test: success path")
-
 		(assert (== number (test 1)) "when/* test: number")
 		(assert (== string (test "123")) "when/* test: string")
 		(try (
@@ -81,6 +84,13 @@
 				(throw E)
 			)))
 		))
+
+		% Unlike above test, this one will accept any given value because its
+		% comparison function always returns true.
+		(def test-any #What :: (
+			(when (tuple true # :: (("PASS"))))
+		))
+		(assert (== "PASS" (test-any any)) "when/* test: success path")
 
 		(print "Match tests succeeded")
 	))
