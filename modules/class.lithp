@@ -3,15 +3,10 @@
 (
 	(import lists)
 
-	(var CLASS_INIT '__init__')
-	(var CLASS_CLASS '__class__')
-	(var CLASS_FUNCS '__functions__')
-	(var CLASS_INSTC '__instance__')
-
-	(def class-init  # :: ((CLASS_INIT)))
-	(def class-class # :: ((CLASS_CLASS)))
-	(def class-funcs # :: ((CLASS_FUNCS)))
-	(def class-instc # :: ((CLASS_INSTC)))
+	(def class-init  # :: (("__init")))
+	(def class-class # :: (("__class__")))
+	(def class-funcs # :: (("__functions__")))
+	(def class-instc # :: (("__instance__")))
 	(export-global class-init/0 class-class/0 class-funcs/0 class-instc/0)
 
 	(def member-set  #Instance,Name,Value :: ((dict-set Instance Name Value)))
@@ -25,8 +20,8 @@
 		(var Fun      (head Args))
 		% Params includes Self as the first member
 		(var Params   (++ (list Self) (tail Args)))
-		(var Instance (member-get Self CLASS_INSTC))
-		(var Funcs    (member-get Instance CLASS_FUNCS))
+		(var Instance (member-get Self (class-instc)))
+		(var Funcs    (member-get Instance (class-funcs)))
 		(var Dest     (member-get Funcs Fun))
 		(apply Dest Params)
 	))
@@ -36,10 +31,10 @@
 		(var Name (head Args))
 		(var Members (tail Args))
 		(var Instance (dict))
-		(dict-set Instance CLASS_CLASS Name)
-		(dict-set Instance CLASS_FUNCS (dict))
+		(dict-set Instance (class-class) Name)
+		(dict-set Instance (class-funcs) (dict))
 		(foldl Members Instance #Member,Self :: (
-			(member-set (dict-get Self CLASS_FUNCS) (index Member 0) (index Member 1))
+			(member-set (dict-get Self (class-funcs)) (index Member 0) (index Member 1))
 			(Self)
 		))
 	))
@@ -47,9 +42,9 @@
 		(var Class (head Args))
 		(var Params (tail Args))
 		(var Instance (dict))
-		(member-set (get Instance) CLASS_INSTC (get Class))
-		(if (member-present (member-get Class CLASS_FUNCS) CLASS_INIT) (
-			(apply member-call (++ (list Instance CLASS_INIT) Params))
+		(member-set (get Instance) (class-instc) (get Class))
+		(if (member-present (member-get Class (class-funcs)) (class-init)) (
+			(apply member-call (++ (list Instance (class-init)) Params))
 		))
 		(Instance)
 	))
@@ -58,7 +53,7 @@
 
 	(if (get-def 'CLASS_TEST') (
 		(var TestClass (class 'TestClass'
-			(tuple CLASS_INIT #Self,Base :: (
+			(tuple (class-init) #Self,Base :: (
 				(member-set Self base Base)
 			))
 			(tuple 'add' #Self,A,B :: (

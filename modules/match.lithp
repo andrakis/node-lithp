@@ -19,6 +19,10 @@
 	               is-list/1   is-atom/1   is-dict/1     is-tuple/1)
 
 	(def when/* #Handlers :: (
+		(when-inner Handlers)
+	))
+
+	(def when-inner #Handlers :: (
 		(var Handler (head Handlers))
 		(var Test (index Handler 0))
 		(var Success (index Handler 1))
@@ -35,9 +39,8 @@
 		(if (== true TestResult) (
 			(call Success)
 		) (else (
-			% TODO: recurse doesn't work with arity * functions
 			(if (> (length Handlers) 1) (
-				(next when (tail Handlers))
+				(recurse (tail Handlers))
 			) (else (
 				(throw "No matching clause in when")
 			)))

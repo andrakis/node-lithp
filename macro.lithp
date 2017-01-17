@@ -1,0 +1,88 @@
+% Lithp macro preprocessor
+(
+	(import class)
+	(import file)
+	(import lists)
+
+	(var MacroPreprocessor (class 'MacroPreprocessorClass'
+		(tuple (class-init) #Self,BaseDir :: (
+			(var Dir (get BaseDir))
+
+			(var Files (filter (read-dir Dir) #N :: (
+				(!= (null) (match N (regex "\\.h$")))
+			)))
+			%(print "Using headers: " (join Files " "))
+
+			(var Definitions (list))
+			(each Files (scope #File :: (
+				(set Definitions (++ Definitions (list (new Definition File))))
+			)))
+
+			(member-set Self definitions Definitions)
+		))
+		(tuple parse #Self,File :: (
+			(foldl (member-get Self definitions) File #Def,Acc :: (
+				(member-call Def parse Acc)
+			))
+		))
+	))
+
+	(var Definition (class 'DefinitionClass'
+		(tuple (class-init) #Self,File :: (
+			(var Contents (read-lines (+ Dir "/" File)))
+			(var Definitions (dict))
+			(dict-set Definitions '__FILE__' (resolve File))
+			(member-set Self definitions (member-call Self parse-contents Contents Definitions))
+			%(print (member-get Self definitions))
+		))
+		(tuple parse-contents #Self,Contents,Definitions :: (
+			(if (== 0 (length Contents)) (
+				(Definitions)
+			) (else (
+				(while ((> (length Contents) 0)) (
+					(var Line (head Contents))
+					(set Contents (tail Contents))
+					(var Match (match Line (regex
+						"^\\s*#([a-z]+)(?:\\s+([^ ]+))?(?:\\s+(.+))?\\s*$")
+					))
+					(if (!= (null) Match) (
+						(var Directive (index Match 1))
+						(var Name      (index Match 2))
+						(var Value     (index Match 3))
+						(if (== "define" Directive) (
+							(dict-set Definitions Name Value)
+							%(print "Defining " Name " => " Value)
+						) (else (
+							(throw (+ "Unknown directive: " Directive))
+						)))
+					))
+				))
+				(Definitions)
+			)))
+		))
+		(tuple add-def #Self,Search,Replace :: (
+			(var Definitions (member-get Self definitions))
+			(if (dict-present Definitions Search) (
+				(throw (+ "Attempted redefinition of " Search))
+			))
+			(dict-set Definitions Search Replace)
+			(Self)
+		))
+		(tuple get-defs #Self :: (
+			(member-get Self definitions)
+		))
+		(tuple parse #Self,Contents :: (
+			(var Definitions (member-get Self definitions))
+			(foldl (dict-keys Definitions) Contents (scope #Def,Result :: (
+				(var Search (get Def))
+				(var Replace (dict-get Definitions Def))
+				(replace Result (regex Search g) Replace)
+			)))
+		))
+	))
+
+	% Classes defined. Instantiate preprocessor
+	(var Preprocessor (new MacroPreprocessor "macro"))
+
+	(var TestCode "(def f #N :: ((when (tuple {== 0 N} {1}) (tuple {atom true} {fac (- N 1)))))")
+	(print (member-call Preprocessor parse TestCode))

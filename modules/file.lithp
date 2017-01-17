@@ -5,14 +5,17 @@
 	(var FS (require "fs"))
 	(var Path (require "path"))
 
+	(def resolve #Filename :: ((invoke Path resolve Filename)))
+	(export-global resolve/1)
+
 	(def read-file #Filename :: (
-		(set Filename (invoke Path "resolve" Filename))
-		(invoke FS "readFileSync" Filename)
+		(set Filename (invoke Path resolve Filename))
+		(invoke FS readFileSync Filename)
 	))
 
 	(def read-file #Filename,Callback :: (
-		(set Filename (invoke Path "resolve" Filename))
-		(invoke FS "readFile" Filename (js-bridge Callback))
+		(set Filename (invoke Path resolve Filename))
+		(invoke FS readFile Filename (js-bridge Callback))
 	))
 
 	(def file-exists #Path :: ((== (true) (invoke FS existsSync Path))))
@@ -25,6 +28,12 @@
 			(lstat-empty Path)
 		)))
 	))
+
+	(def read-dir #Path :: (
+		(invoke FS readdirSync Path)
+	))
+
+	(export-global read-dir/1)
 
 	(var LStatMembers (list "dev" "mode" "nlink" "uid" "gid" "rdev" "blksize" "ino"
 	                        "size" "blocks" "atime" "mtime" "ctime" "birthtime"))
@@ -39,6 +48,12 @@
 
 	% Deprecated: (export-global readFileAsync/2)
 	(export-global read-file/1 read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
+
+	(def read-lines #File :: (
+		(split (to-string (read-file File)) (regex "\\r?\\n"))
+	))
+
+	(export-global read-lines/1)
 
 	(if (== true (get-def 'TEST')) (
 		(read-file "index.js" #Err,Data :: (

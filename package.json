@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/andrakis/node-lithp/issues"
   },
-  "homepage": "https://github.com/andrakis/node-lithp#readme"
+  "homepage": "https://github.com/andrakis/node-lithp#readme",
+  "bin": {
+    "lithp": "bin/lithp",
+    "lithp-repl": "bin/repl"
+  }
 }
