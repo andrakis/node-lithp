@@ -7,6 +7,7 @@
 		class        % Very basic class module
 		file         % File IO
 		lists        % List related functions
+		math         % Math functions
 		%readline    % Not a default module, relies on npm provided module.
 		             % Disabled because this is not cross-interpreter friendly.
 		random       % Random number functions

@@ -1,0 +1,39 @@
+(
+	(import lists)
+	(var ArityFuns (dict
+		(tuple 1 (list abs   acos   acosh asin  asinh atan atanh
+		               cbrt  ceil   clz32 cos   cosh  exp  expm1
+		               floor fround log   log1p log10 log2 round
+		               sign  sin    sinh  sqrt  tan   tanh trunc))
+		(tuple 2 (list atan2 imul   pow))
+		(tuple * (list hypot)) % Disabled: max    min))
+	))
+
+	(var Math (math-object))
+	(each (dict-keys ArityFuns) (scope #Arity :: (
+		(var Entries (dict-get ArityFuns Arity))
+		(each Entries (scope #Entry :: (
+			(var FullName (atom (+ Entry "/" Arity)))
+			(if (== 1 Arity) (
+				(def FullName (scope #A :: (
+					(invoke Math Entry A)
+				)))
+				(export-global FullName)
+			) (else (
+				(if (== 2 Arity) (
+					(def FullName (scope #A,B :: (
+						(invoke Math Entry A B)
+					)))
+					(export-global FullName)
+				) (else (
+					(if (== * Arity) (
+						(def FullName (scope #Args :: (
+							(apply (dict-get Math Entry) Args)
+						)))
+						(export-global FullName)
+					))
+				)))
+			)))
+		)))
+	)))
+)

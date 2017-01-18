@@ -134,9 +134,6 @@ if(use_macro) {
 			process.exit(1);
 		}
 		code = result.stdout.toString();
-		// Remove path that appears on output for some reason
-		if(code[0] == '/')
-			code = code.split(/\n\r?/).slice(1).join('\n');
 	});
 	if(print_times)
 		console.error("Preprocessed in " + result[1] + "ms");
