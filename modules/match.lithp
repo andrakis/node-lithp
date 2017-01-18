@@ -1,4 +1,8 @@
 (
+	(def true  # :: ((atom true)))
+	(def false # :: ((atom false)))
+	(export-global true/0 false/0)
+
 	% Pattern matching
 	(def is-number #V :: ((== number (typeof V))))
 	(def is-string #V :: ((== string (typeof V))))
