@@ -12,6 +12,8 @@
  *   -DNAME[=atom]          Define symbol name. If value not given,
  *                          defined as true. Always an atom.
  *   -t                     Print times (parse and run times)
+ *   -m                     Run code through macro preprocessor.
+ *                          Uses macro.lithp.
  *   -a                     Print known atoms after script execution.
  *   -x                     Export source code tree.
  *   -v1                    (Obsolete) Load PlatformV1 library.
@@ -41,6 +43,7 @@ var use_platform_v1 = false;
 var print_times = false;
 var print_atoms = false;
 var export_source = false;
+var use_macro = false;
 
 function show_help () {
 	console.error("Usage:");
@@ -53,8 +56,10 @@ function show_help () {
 	console.error("                    defined as true.");
 	console.error("    -t              Print times (parse and run times)");
 	console.error("                    to stderr.");
+	console.error("    -m              Run code through macro preprocessor.");
+	console.error("                    Uses macro.lithp.");
 	console.error("    -a              Print known atoms after script execution.");
-	console.error("*   -x              Export source code tree.");
+	console.error("    -x              Export source code tree.");
 }
 
 args.forEach(A => {
@@ -74,6 +79,8 @@ args.forEach(A => {
 		print_times = true;
 	else if(A.match(/^-x(port)?$/))
 		export_source = true;
+	else if(A.match(/^-m(acro)?$/))
+		use_macro = true;
 	else if((matches = A.match(/-D[A-Za-z-_]+(=.*$)?/g))) {
 		matches.forEach(Def => {
 			var m = A.match(/-D([A-Za-z-_]+)(?:=(.*$))?/);
@@ -115,6 +122,19 @@ if(print_times) {
 var code = fs.readFileSync(file).toString();
 if(use_stdlib)
 	code = "(import stdlib)" + code;
+if(use_macro) {
+	const cp = require('child_process');
+	var result = cp.spawnSync('./macro.lithp', [], {
+		input: code
+	});
+	if(result.status != 0) {
+		console.error(result);
+		console.error("Error running preprocessor. Check above output.");
+		process.exit(1);
+	}
+	code = result.stdout.toString();
+}
+
 var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
 var parsed = result[0];
 if(export_source) {
