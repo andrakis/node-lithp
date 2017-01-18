@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 prg=`readlink -f $0`
 if [ ! -e "$prg" ]; then
   case $prg in
@@ -27,5 +26,5 @@ case $name in
     *)
         ;;
 esac
-pushd $dir/..
+pushd $dir/.. > /dev/null
 ./$app $mod $args $@
