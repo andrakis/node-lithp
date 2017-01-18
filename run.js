@@ -123,19 +123,23 @@ var code = fs.readFileSync(file).toString();
 if(use_stdlib)
 	code = "(import stdlib)" + code;
 if(use_macro) {
-	const cp = require('child_process');
-	var result = cp.spawnSync('./macro.lithp', [], {
-		input: code
+	var result = timeCall("Preprocess code", () => {
+		const cp = require('child_process');
+		var result = cp.spawnSync('./macro.lithp', [], {
+			input: code
+		});
+		if(result.status != 0) {
+			console.error(result.stderr.toString());
+			console.error("Error running preprocessor. Check above output.");
+			process.exit(1);
+		}
+		code = result.stdout.toString();
+		// Remove path that appears on output for some reason
+		if(code[0] == '/')
+			code = code.split(/\n\r?/).slice(1).join('\n');
 	});
-	if(result.status != 0) {
-		console.error(result.stderr.toString());
-		console.error("Error running preprocessor. Check above output.");
-		process.exit(1);
-	}
-	code = result.stdout.toString();
-	// Remove path that appears on output for some reason
-	if(code[0] == '/')
-		code = code.split(/\n\r?/).slice(1).join('\n');
+	if(print_times)
+		console.error("Preprocessed in " + result[1] + "ms");
 }
 
 var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
