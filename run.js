@@ -128,11 +128,14 @@ if(use_macro) {
 		input: code
 	});
 	if(result.status != 0) {
-		console.error(result);
+		console.error(result.stderr.toString());
 		console.error("Error running preprocessor. Check above output.");
 		process.exit(1);
 	}
 	code = result.stdout.toString();
+	// Remove path that appears on output for some reason
+	if(code[0] == '/')
+		code = code.split(/\n\r?/).slice(1).join('\n');
 }
 
 var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
