@@ -1,0 +1,17 @@
+#!/usr/bin/env lithp-macro
+% Test the preprocessor. See -m flag above.
+(
+	(import match)
+	(def fac #N :: (
+		% { starts a (scope #) section.
+		% } closes it.
+		(when (tuple {== 0 N} {1})
+		      (tuple {atom true} {* N (fac (- N 1))})
+		)
+	))
+	(print (fac 10))
+	% [ starts a list.
+	% ] closes it.
+	(print [1 2 3 4])
+)
+

@@ -1,6 +1,6 @@
 {
   "name": "lithp",
-  "version": "0.11.1",
+  "version": "0.11.3",
   "description": "A small Lisp-like language with a tiny interpreter",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "homepage": "https://github.com/andrakis/node-lithp#readme",
   "bin": {
     "lithp": "bin/lithp",
-    "lithp-repl": "bin/repl"
+    "lithp-repl": "bin/repl",
+    "lithp-macro": "bin/macro"
   }
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 prg=`readlink -f $0`
 if [ ! -e "$prg" ]; then
   case $prg in
@@ -13,13 +14,18 @@ name=$(basename -- "$prg")
 
 app=run.js
 mod=
+args=
 case $name in
 	lithp)
         ;;
     repl)
         mod=repl.lithp
         ;;
+	macro)
+        args=-m
+        ;;
     *)
         ;;
 esac
-$dir/../$app $mod $@
+pushd $dir/..
+./$app $mod $args $@
