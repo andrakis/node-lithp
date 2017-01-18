@@ -2,8 +2,6 @@
 %
 % Provides functions for working with streams.
 (
-	(platform ext)
-
 	(import buffer)
 
 	(var FS (require "fs"))

@@ -117,7 +117,9 @@ function ParserState (parent) {
 	this.in_variable = false;
 	this.in_atom = false;
 	this.quote_type = undefined;
-	this.line = 0;
+	this.line = 1;
+	this.character = 1;
+	this.lines = [];
 }
 
 // Classify the given character(s). It could suit a number of different
@@ -317,18 +319,25 @@ ParserState.prototype.parseSection = function(it, dest) {
 				if(ch === undefined)
 					return ch;
 				chCode = ch.charCodeAt(0);
+				if(chCode == 10) {
+					self.character = 1;
+					self.line++;
+				}
 			}
 			ch = it.next();
+			self.line++;
 		}
-		if(characters == 0 && ch == '#') {
+		if(self.character == 1 && ch == '#') {
 			ch = it.next();
 			if(ch == '!') {
+				ch = it.next();
 				// Shebang, ignore line
 				ignore_line();
 			} else
-				throw new Error('Unexpected token and not shebang');
+				it.prev();
 		}
 		characters++;
+		self.character++;
 		if(ch === undefined)
 			return ch;
 		if(ch == '%' && !(self.expect & EX_STRING_CHARACTER)) {
@@ -399,7 +408,10 @@ ParserState.prototype.parseSection = function(it, dest) {
 
 		// Has the character been classified as something we are expecting?
 		if(!(cls & expect)) {
-			throw new Error("Unexpected character " + ch + " (" + GET_EX(cls) + "), was expecting: " + GET_EX(this.expect));
+			console.log("Error on line " + self.line + " at character " + self.character);
+			console.log("  " + self.lines[self.line - 1]);
+			console.log("  " + (" ".repeat(self.character + 1)) + "^");
+			throw new Error("Unexpected character at " + self.line + ":" + self.character + " '" + ch + "' not expected (" + GET_EX(cls) + "), was expecting: " + GET_EX(this.expect));
 		}
 
 		if(cls & EX_OPCHAIN && !(expect & EX_STRING_CHARACTER)) {
@@ -522,6 +534,7 @@ function BootstrapParser (code, opts) {
 	var start = (new Date()).getTime();
 	var state = new ParserState();
 	var it = code.split('').iterator();
+	state.lines = code.split(/\n\r?/);
 	state.ops = state.parseSection(it, []);
 	if(opts['finalize']) {
 		var fin = state.finalize();
