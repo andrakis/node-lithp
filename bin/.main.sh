@@ -26,5 +26,4 @@ case $name in
     *)
         ;;
 esac
-pushd $dir/.. > /dev/null
-./$app $mod $args $@
+$dir/../$app $mod $args $@
