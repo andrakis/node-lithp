@@ -142,7 +142,7 @@ if(use_macro) {
 var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
 var parsed = result[0];
 if(export_source) {
-	console.log(inspect(parsed.ops, {depth: null}));
+	console.log(inspect(parsed.export(), {depth: null}));
 	process.exit();
 }
 instance.setupDefinitions(parsed, file);

@@ -526,6 +526,30 @@ ParserState.prototype.parseSection = function(it, dest) {
 	return dest;
 }
 
+ParserState.prototype.export = function() {
+	var it = this.ops.iterator();
+	return this.export_section(it);
+};
+
+ParserState.prototype.export_section = function(it) {
+	var out = [];
+	var curr;
+	while((curr = it.next())) {
+		if(curr._fndef) {
+			curr = {code: curr, _fndef: true, _fnparams: curr._fnparams}
+			delete curr.code._fndef;
+			delete curr.code._fnparams;
+			out.push(curr);
+		} else if(Array.isArray(curr)) {
+			out.push(this.export_section(curr.iterator()));
+		} else {
+			out.push(curr);
+		}
+	}
+	return out;
+};
+
+
 function BootstrapParser (code, opts) {
 	opts = (typeof opts == 'object') ? opts : {};
 	opts['finalize'] = (opts['finalize'] !== undefined) ? opts['finalize'] : true;
