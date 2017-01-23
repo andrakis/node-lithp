@@ -3,6 +3,7 @@
 %
 (
 	(import lists)
+	(import math)
 	(import readline)
 	(import switch)
 
@@ -85,10 +86,10 @@
 	(var CaseBinary  (case "B" (scope # :: ((set-acc-format "B")))))
 	(var CaseHelp1   (case "h" (scope # :: ((show-help)))))
 	(var CaseHelp2   (case "?" (scope # :: ((show-help)))))
-	(var CaseDefault (default (scope #Given :: ((print "Unknown command")(get Acc)))))
-	(var CaseList    (list CasePrint CaseQuit CaseCurrent CaseFloor CaseCeil
+	(var CaseDefault (default  (scope #Given :: ((print "Unknown command")(get Acc)))))
+	(var CaseList    (list CasePrint CaseQuit    CaseCurrent CaseFloor CaseCeil
 	                       CaseHex   CaseDecimal CaseBinary
-	                       CaseHelp1 CaseHelp2 CaseDefault))
+	                       CaseHelp1 CaseHelp2   CaseDefault))
 
 	(def parse #Entry :: (
 		(var Matches (match Entry "([-=+*/!@#$%^&<>a-z]+) (.*)$"))
