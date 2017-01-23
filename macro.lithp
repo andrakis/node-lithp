@@ -89,6 +89,13 @@
 	(var Preprocessor (new MacroPreprocessor "macro"))
 
 	%(var TestCode "(def f #N :: ((when (tuple {== 0 N} {1}) (tuple {atom true} {fac (- N 1)))))")
-	(var TestCode (readInputStream))
-	(print (member-call Preprocessor parse TestCode))
+	(if (get-def '__MAIN__') (
+		(var TestCode (readInputStream))
+		(print (member-call Preprocessor parse TestCode))
+	))
+
+	(def macro-preprocessor #Contents :: (
+		(member-call Preprocessor parse Contents)
+	))
+	(export-global macro-preprocessor/1)
 )
