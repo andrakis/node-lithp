@@ -536,7 +536,7 @@ ParserState.prototype.export_section = function(it) {
 	var curr;
 	while((curr = it.next())) {
 		if(curr._fndef) {
-			curr = {code: curr, _fndef: true, _fnparams: curr._fnparams}
+			curr = {code: this.export_section(curr.iterator()), _fndef: true, _fnparams: curr._fnparams}
 			delete curr.code._fndef;
 			delete curr.code._fnparams;
 			out.push(curr);
@@ -551,7 +551,7 @@ ParserState.prototype.export_section = function(it) {
 
 ParserState.prototype.unexport = function(ast) {
 	if(ast && ast['code']) {
-		var obj = ast['code'];
+		var obj = this.unexport(ast['code']);
 		obj._fndef = ast['_fndef'];
 		obj._fnparams = ast['_fnparams'];
 		return obj;
@@ -570,7 +570,6 @@ function BootstrapParser (code, opts) {
 	var start = (new Date()).getTime();
 	var state = new ParserState();
 	var it = code.split('').iterator();
-	console.log(opts);
 	if(opts['ast']) {
 		state.ops = [state.unexport(JSON.parse(code))];
 	} else {

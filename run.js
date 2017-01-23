@@ -129,6 +129,15 @@ if(print_times) {
 var results = {before: 0, before_time: 0, run: 0, run_time: 0};
 var macroInstance = null;
 
+if(use_macro) {
+	console.error("Starting macro preprocessor");
+	var macroCode = fs.readFileSync("./macro.lithp").toString();
+	var macroParsed = BootstrapParser(macroCode, {finalize: true});
+	instance.setupDefinitions(macroParsed, "macro.lithp");
+	macroInstance = macroParsed;
+	instance.run(macroInstance);
+}
+
 files.forEach(function(file) {
 	var code = fs.readFileSync(file).toString();
 	try {
@@ -147,14 +156,6 @@ function runInInstance(instance, code, file) {
 		code = "(import stdlib)" + code;
 	if(use_macro) {
 		var result = timeCall("Preprocess code", () => {
-			if(macroInstance === null) {
-				var macroCode = fs.readFileSync("./macro.lithp").toString();
-				var macroParsed = BootstrapParser(macroCode, {finalize: true});
-				instance.setupDefinitions(macroParsed, "macro.lithp");
-				macroInstance = macroParsed;
-				instance.run(macroInstance);
-				console.error("Starting macro preprocessor");
-			}
 			code = instance.Invoke(macroInstance, "macro-preprocessor/1", [code]);
 			return code;
 		});
@@ -170,14 +171,16 @@ function runInInstance(instance, code, file) {
 		console.log(inspect(parsed.ops, {depth: null}));
 		return;
 	} else if(use_compile) {
-		//fs.writeFile(astName, inspect(parsed.export(), {depth: null}));
-		fs.writeFile(astName, JSON.stringify(parsed.export()));
+		fs.writeFile(astName, JSON.stringify(parsed.export(), undefined, "\t"));
 		return;
 	}
 
 	// Setup instance in preparation for running
 	instance.setupDefinitions(parsed, file);
 	instance.Define(parsed, "__MAIN__", Atom('true'));
+	if(file == astName) {
+		instance.Define(parsed, "__AST__", Atom('true'));
+	}
 	debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, colors: true})));
 	if(print_times)
 		console.error("Parsed in " + result[1] + "ms");
