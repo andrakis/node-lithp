@@ -117,11 +117,6 @@ if(use_debug)
 if(use_parser_debug)
 	global._lithp.set_parser_debug(true);
 
-var instance = new Lithp();
-if(use_platform_v1) {
-	(require('./platform/v1/parser-lib')).setup(instance);
-}
-
 if(print_times) {
 	console.error("Interpreter loaded in " + (new Date().getTime() - _lithp_start ) + "ms");
 }
@@ -140,12 +135,19 @@ if(use_macro) {
 
 files.forEach(function(file) {
 	var code = fs.readFileSync(file).toString();
+	var instance = new Lithp();
+	if(use_platform_v1) {
+		(require('./platform/v1/parser-lib')).setup(instance);
+	}
+
 	try {
 		runInInstance(instance, code, file);
 	} catch (e) {
 		console.error(e.stack);
 	}
 });
+
+results['before']      += tallyCalls()[0];
 
 function runInInstance(instance, code, file) {
 	var astName = file.replace(/\.lithp$/, '.ast');
@@ -185,7 +187,6 @@ function runInInstance(instance, code, file) {
 	if(print_times)
 		console.error("Parsed in " + result[1] + "ms");
 	result = timeCall("Run code", () => instance.run(parsed));
-	results['before']      += tallyCalls()[0];
 	results['before_time'] += result[1];
 }
 
@@ -196,6 +197,8 @@ function tallyCalls () {
 	for(var id in lithp_instances) {
 		var i = lithp_instances[id];
 		totalCalls += i.functioncalls;
+		if(!i.last_chain)
+			continue;
 		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
 	}
 	return [totalCalls, info];
