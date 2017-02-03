@@ -8,6 +8,7 @@
  * Supports the following flags:
  *   -s                     Load stdlib module
  *   -c                     Compile AST (Abstract Source Tree) from code
+ *   -cc                    Compile AST files in compact mode (less readable)
  *   -d                     Enable Lithp debug mode.
  *   -p                     Enable bootstrap parser debug mode.
  *   -DNAME[=atom]          Define symbol name. If value not given,
@@ -46,6 +47,7 @@ var print_atoms = false;
 var export_source = false;
 var use_macro = false;
 var use_compile = false;
+var use_compact = false;
 
 function show_help () {
 	console.error("Usage:");
@@ -53,7 +55,8 @@ function show_help () {
 	console.error("Multiple filenames can be passed.");
 	console.error("Available flags:");
 	console.error("    -s              Load standard library module");
-	console.error("    -c              Compile Abstract Source Tree files");
+	console.error("    -c              Compile Abstract Source Tree (AST) files");
+	console.error("    -cc             Compile AST files in compact mode (less readable)");
 	console.error("    -d              Enable Lithp debug mode");
 	console.error("    -p              Enable bootstrap parser debug mode");
 	console.error("    -Dname[=Value]  Define symbol name. If Value not given,");
@@ -72,6 +75,8 @@ args.forEach(A => {
 		use_stdlib = true;
 	else if(A.match(/^-c(ompile)?$/))
 		use_compile = true;
+	else if(A.match(/^-cc(ompact)?$/))
+		use_compact = true;
 	else if(A.match(/^-d(ebug)?$/))
 		use_debug = true;
 	else if(A.match(/^-p$/))
@@ -173,7 +178,9 @@ function runInInstance(instance, code, file) {
 		console.log(inspect(parsed.ops, {depth: null}));
 		return;
 	} else if(use_compile) {
-		fs.writeFile(astName, JSON.stringify(parsed.export(), undefined, "\t"));
+		var jsonSeparator = "\t";
+		if(use_compact) jsonSeparator = "";
+		fs.writeFile(astName, JSON.stringify(parsed.export(), undefined, jsonSeparator));
 		return;
 	}
 

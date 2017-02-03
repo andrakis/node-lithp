@@ -16,10 +16,11 @@ FINAL=
 	$(eval FINAL += $<)
 
 final:
-	@if [ "$(FINAL)"x != "x" ]; then $(RUN) -c $(FINAL); fi
+	@if [ "$(FINAL)"x != "x" ]; then $(RUN) $(RUNFLAGS) -c $(FINAL); fi
 
 $(SUBDIRS):
-	$(MAKE) -C $@
+	echo "Running make with flags: $(RUNFLAGS)"
+	$(MAKE) -C $@ RUNFLAGS=$(RUNFLAGS)
 
 clean:
 	-rm -f *.ast

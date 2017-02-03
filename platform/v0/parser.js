@@ -569,10 +569,13 @@ function BootstrapParser (code, opts) {
 	characters = 0;
 	var start = (new Date()).getTime();
 	var state = new ParserState();
-	var it = code.split('').iterator();
 	if(opts['ast']) {
-		state.ops = [state.unexport(JSON.parse(code))];
+		var parsed = code;
+		if(typeof code == 'string')
+			parsed = JSON.parse(code);
+		state.ops = [state.unexport(parsed)];
 	} else {
+		var it = code.split('').iterator();
 		state.lines = code.split(/\n\r?/);
 		state.ops = state.parseSection(it, []);
 	}

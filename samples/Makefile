@@ -15,7 +15,7 @@ FINAL=
 	$(eval FINAL += $<)
 
 final:
-	@if [ "$(FINAL)"x != "x" ]; then $(RUN) -c $(FINAL); fi
+	@if [ "$(FINAL)"x != "x" ]; then $(RUN) $(RUNFLAGS) -c $(FINAL); fi
 
 clean:
 	-rm -f *.ast
