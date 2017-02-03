@@ -24,5 +24,8 @@
     "lithp": "bin/lithp",
     "lithp-repl": "bin/repl",
     "lithp-macro": "bin/macro"
+  },
+  "scripts": {
+    "postinstall": "if [ ! -e run ]; then ln -s run.js run; fi"
   }
 }
