@@ -25,9 +25,7 @@ debug statements and detailed comments.
 Language Examples
 =================
 
-The main examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
-
-Additional examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
+The examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
 
 Simple test
 -----------
@@ -126,9 +124,13 @@ List comprehension is provided by the `lists` module. Here is an example usage:
 Running some sample code
 ========================
 
-You have two options:
+You have three options:
 
-  * The REPL
+  * The online REPL
+
+     A REPL is [available online](https://andrakis.github.io/lithp/) that will run basic code snippits. This does not yet support running an entire script.
+
+  * The console REPL
 
      The REPL, or Read Execute Print Loop, is available in the top level directory. To start it invoke:
 
@@ -153,7 +155,7 @@ You have two options:
 Language Status
 ===============
 
-Version: 0.10.1 (EXPERIMENTAL)
+Version: 0.20.0 (STABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
@@ -180,6 +182,14 @@ corrected.
 Implemented milestones
 ----------------------
 
+* Parsing
+
+  * Serialization of compiled OpChains to AST. Allows for other Lithp interpreters to run parsed code. (A C# interpreter is in progress.)
+
+  * AST parsing and compilation has been implemented.
+
+  * This allows faster script startup, and allows packaging the entire project using browserify.
+
 * Modules
 
   * A list comprehension function, `lcomp`, is available in the [lists module](https://github.com/andrakis/node-lithp/blob/master/modules/lists.lithp)
@@ -190,9 +200,13 @@ Implemented milestones
 
 * REPL
 
+  * An online REPL is [available](https://andrakis.github.io/lithp/)
+
   * A REPL is available for Node.js. Simply run `./repl` to start it. Type `?` for help.
 
 * Language enhancements
+
+  * Package the REPL using browserify to provide an online interpreter. (see [lithp-pkg](https://github.com/andrakis/lithp-pkg))
 
   * Implemented `recurse/*`, enabling tail recursion.
 
@@ -289,18 +303,18 @@ Implemented milestones
 Short term goals
 ----------------
 
-* Package the REPL using browserify to provide an online interpreter.
-
 * Implement a Lithp package system with library dependancies.
-
-* Serialization of compiled OpChains to binary. Would allow for other Lithp
- interpreters to run parsed code. (A C# interpreter is in progress.)
 
 * Expand the standard module library.
 
 * The language is considered powerful enough and feature complete that
-  personal work has begun on new projects using Lithp as their base language.
-  This will likely uncover new things to fix or improve.
+  personal work has begun on new projects using Lithp as their base language. These are all works in progress.
+
+  * [Livium](https://github.com/andrakis/lithp-livium) - an implementation of Vi in Lithp.
+
+  * [Lithp-pkg](https://github.com/andrakis/lithp-pkg) - package Lithp into a browserified file.
+
+  * [Dungeons of Lithp](https://github.com/andrakis/lithp-dol) - a MUD-style dungeon crawler.
 
 Longterm goals
 --------------
@@ -343,9 +357,7 @@ It also borrows some core ideas from Erlang:
 
 However, features such as destructive assignment are present, which differs
 from Erlang. A number of other useful features such as pattern matching,
-list comprehension, binaries, and `module:function` calls are not implemented.
-Some of these can be implemented as library functions, and others could be
-implemented by an improved parser and builtin library.
+list comprehension, binary buffers are implemented as modules.
 
 Additionally, one may define functions with an arity of *, which
 passes all parameters in the first parameter:
@@ -459,32 +471,6 @@ the a different instance of the Lithp interpreter than the module.
 
 To put it another way, module functions run in their own instance, but you can pass
 them any usual value, including callbacks that retain access to defined values.
-
-Extended Examples
-=================
-
-Read a file
------------
-
-Note: this example is further demonstrated in [samples/readfile.lithp](https://github.com/andrakis/node-lithp/blob/master/samples/readfile.lithp),
-and relies on functions provided by Platform 1.
-
-Additionally, it is using the Node.js API. It will be replaced with native
-functions in the future.
-
-	(
-		% The require/1 function requires Platform V1 functionality.
-		(var Fs (require "fs"))
-		(var FsReadFile (dict-get Fs "readFile"))
-		(print "readFile:" (inspect FsReadFile))
-		(var Our_callback (js-bridge #Err,Data :: (
-			(print "Err:  " Err)
-			(print "Data: " Data)
-		)))
-		% You can call FsReadFile using call (a standard builtin.)
-		(call FsReadFile "index.js" Our_callback)
-	)
-
 
 Syntax Highlighting
 ===================
