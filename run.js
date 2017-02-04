@@ -7,6 +7,8 @@
  * Currently uses Platform V0 Bootstrap parser.
  * Supports the following flags:
  *   -s                     Load stdlib module
+ *   -c                     Compile AST (Abstract Source Tree) from code
+ *   -cc                    Compile AST files in compact mode (less readable)
  *   -d                     Enable Lithp debug mode.
  *   -p                     Enable bootstrap parser debug mode.
  *   -DNAME[=atom]          Define symbol name. If value not given,
@@ -35,7 +37,7 @@ var lithp = require('./.'),
 var BootstrapParser = require('./platform/v0/parser').BootstrapParser;
 
 var args = process.argv.slice(2);
-var file = "";
+var files = [];
 var use_stdlib = false;
 var use_debug = false;
 var use_parser_debug = false;
@@ -44,12 +46,17 @@ var print_times = false;
 var print_atoms = false;
 var export_source = false;
 var use_macro = false;
+var use_compile = false;
+var use_compact = false;
 
 function show_help () {
 	console.error("Usage:");
-	console.error("  " + process.argv[1] + " filename [flags]");
+	console.error("  " + process.argv[1] + " [flags] filename [filename...]");
+	console.error("Multiple filenames can be passed.");
 	console.error("Available flags:");
 	console.error("    -s              Load standard library module");
+	console.error("    -c              Compile Abstract Source Tree (AST) files");
+	console.error("    -cc             Compile AST files in compact mode (less readable)");
 	console.error("    -d              Enable Lithp debug mode");
 	console.error("    -p              Enable bootstrap parser debug mode");
 	console.error("    -Dname[=Value]  Define symbol name. If Value not given,");
@@ -66,6 +73,10 @@ args.forEach(A => {
 	var matches;
 	if(A.match(/^-s(tdlib)?$/))
 		use_stdlib = true;
+	else if(A.match(/^-c(ompile)?$/))
+		use_compile = true;
+	else if(A.match(/^-cc(ompact)?$/))
+		use_compact = true;
 	else if(A.match(/^-d(ebug)?$/))
 		use_debug = true;
 	else if(A.match(/^-p$/))
@@ -89,18 +100,18 @@ args.forEach(A => {
 			debug("Defining '" + name + "' as '" + value + "'");
 			_LithpDefine(name, value);
 		});
-	} else if(file == "")
-		file = A;
-	else if (A.match(/-(a|atoms?)/))
+	} else if (A.match(/-(a|atoms?)/))
 		print_atoms = true;
+	else if (!A.match(/^-/))
+		files.push(A);
 	else {
 		console.error("Unknown option: " + A + "");
 		process.exit(2);
 	}
 });
 
-if(file == "") {
-	console.error("Please specify path to source file.");
+if(files.length == 0) {
+	console.error("Please specify path to one or more source files.");
 	process.exit(1);
 }
 
@@ -111,44 +122,80 @@ if(use_debug)
 if(use_parser_debug)
 	global._lithp.set_parser_debug(true);
 
-var instance = new Lithp();
-if(use_platform_v1) {
-	(require('./platform/v1/parser-lib')).setup(instance);
-}
-
 if(print_times) {
 	console.error("Interpreter loaded in " + (new Date().getTime() - _lithp_start ) + "ms");
 }
-var code = fs.readFileSync(file).toString();
-if(use_stdlib)
-	code = "(import stdlib)" + code;
+
+var results = {before: 0, before_time: 0, run: 0, run_time: 0};
+var macroInstance = null;
+
 if(use_macro) {
-	var result = timeCall("Preprocess code", () => {
-		const cp = require('child_process');
-		var result = cp.spawnSync('./macro.lithp', [], {
-			input: code
-		});
-		if(result.status != 0) {
-			console.error(result.stderr.toString());
-			console.error("Error running preprocessor. Check above output.");
-			process.exit(1);
-		}
-		code = result.stdout.toString();
-	});
-	if(print_times)
-		console.error("Preprocessed in " + result[1] + "ms");
+	console.error("Starting macro preprocessor");
+	var macroCode = fs.readFileSync("./macro.lithp").toString();
+	var macroParsed = BootstrapParser(macroCode, {finalize: true});
+	instance.setupDefinitions(macroParsed, "macro.lithp");
+	macroInstance = macroParsed;
+	instance.run(macroInstance);
 }
 
-var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source}));
-var parsed = result[0];
-if(export_source) {
-	console.log(inspect(parsed.export(), {depth: null}));
-	process.exit();
+files.forEach(function(file) {
+	var code = fs.readFileSync(file).toString();
+	var instance = new Lithp();
+	if(use_platform_v1) {
+		(require('./platform/v1/parser-lib')).setup(instance);
+	}
+
+	try {
+		runInInstance(instance, code, file);
+	} catch (e) {
+		console.error(e.stack);
+	}
+});
+
+results['before']      += tallyCalls()[0];
+
+function runInInstance(instance, code, file) {
+	var astName = file.replace(/\.lithp$/, '.ast');
+	if(use_compile)
+		console.log("Compiling " + astName + "...");
+
+	if(use_stdlib)
+		code = "(import stdlib)" + code;
+	if(use_macro) {
+		var result = timeCall("Preprocess code", () => {
+			code = instance.Invoke(macroInstance, "macro-preprocessor/1", [code]);
+			return code;
+		});
+		if(print_times)
+			console.error("Preprocessed in " + result[1] + "ms");
+	}
+
+	var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source &&
+	                                                                          !use_compile,
+	                                                                 ast: (astName == file)}))
+	var parsed = result[0];
+	if(export_source) {
+		console.log(inspect(parsed.ops, {depth: null}));
+		return;
+	} else if(use_compile) {
+		var jsonSeparator = "\t";
+		if(use_compact) jsonSeparator = "";
+		fs.writeFile(astName, JSON.stringify(parsed.export(), undefined, jsonSeparator));
+		return;
+	}
+
+	// Setup instance in preparation for running
+	instance.setupDefinitions(parsed, file);
+	instance.Define(parsed, "__MAIN__", Atom('true'));
+	if(file == astName) {
+		instance.Define(parsed, "__AST__", Atom('true'));
+	}
+	debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, colors: true})));
+	if(print_times)
+		console.error("Parsed in " + result[1] + "ms");
+	result = timeCall("Run code", () => instance.run(parsed));
+	results['before_time'] += result[1];
 }
-instance.setupDefinitions(parsed, file);
-debug("Parsed: " + (1 ? parsed.toString() : inspect(parsed.ops, {depth: null, colors: true})));
-if(print_times)
-	console.error("Parsed in " + result[1] + "ms");
 
 function tallyCalls () {
 	var totalCalls = 0;
@@ -157,17 +204,16 @@ function tallyCalls () {
 	for(var id in lithp_instances) {
 		var i = lithp_instances[id];
 		totalCalls += i.functioncalls;
+		if(!i.last_chain)
+			continue;
 		info.push("lithp[" + id + "]: " + i.functioncalls + "\t" + i.CallBuiltin(i.last_chain, "get-def", ["__filename"]));
 	}
 	return [totalCalls, info];
 }
 
-result = timeCall("Run code", () => instance.run(parsed));
-var beforeEventsCalls = tallyCalls()[0];
-
 global.lithp_atexit(() => {
 	if(print_times) {
-		console.error(beforeEventsCalls + " function calls executed in " + result[1] + "ms before events");
+		console.error(results['before'] + " function calls executed in " + results['before_time'] + "ms before events");
 		var totalCalls = tallyCalls();
 		var totalTime  = (new Date().getTime()) - global._lithp_start;
 		console.error(totalCalls[0] + " function calls executed in " + totalTime + "ms across:\n" + totalCalls[1].join("\n") + "\n");

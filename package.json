@@ -1,6 +1,6 @@
 {
   "name": "lithp",
-  "version": "0.11.8",
+  "version": "0.12.2",
   "description": "A small Lisp-like language with a tiny interpreter",
   "main": "index.js",
   "scripts": {
@@ -24,5 +24,8 @@
     "lithp": "bin/lithp",
     "lithp-repl": "bin/repl",
     "lithp-macro": "bin/macro"
+  },
+  "scripts": {
+    "postinstall": "if [ ! -e run ]; then ln -s run.js run; fi"
   }
 }

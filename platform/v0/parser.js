@@ -536,7 +536,7 @@ ParserState.prototype.export_section = function(it) {
 	var curr;
 	while((curr = it.next())) {
 		if(curr._fndef) {
-			curr = {code: curr, _fndef: true, _fnparams: curr._fnparams}
+			curr = {code: this.export_section(curr.iterator()), _fndef: true, _fnparams: curr._fnparams}
 			delete curr.code._fndef;
 			delete curr.code._fnparams;
 			out.push(curr);
@@ -549,17 +549,36 @@ ParserState.prototype.export_section = function(it) {
 	return out;
 };
 
+ParserState.prototype.unexport = function(ast) {
+	if(ast && ast['code']) {
+		var obj = this.unexport(ast['code']);
+		obj._fndef = ast['_fndef'];
+		obj._fnparams = ast['_fnparams'];
+		return obj;
+	} else if(Array.isArray(ast)) {
+		return ast.map(E => this.unexport(E));
+	}
+	return ast;
+}
 
 function BootstrapParser (code, opts) {
 	opts = (typeof opts == 'object') ? opts : {};
 	opts['finalize'] = (opts['finalize'] !== undefined) ? opts['finalize'] : true;
+	opts['ast']      = (opts['ast'] !== undefined) ? opts['ast'] : false;
 
 	characters = 0;
 	var start = (new Date()).getTime();
 	var state = new ParserState();
-	var it = code.split('').iterator();
-	state.lines = code.split(/\n\r?/);
-	state.ops = state.parseSection(it, []);
+	if(opts['ast']) {
+		var parsed = code;
+		if(typeof code == 'string')
+			parsed = JSON.parse(code);
+		state.ops = [state.unexport(parsed)];
+	} else {
+		var it = code.split('').iterator();
+		state.lines = code.split(/\n\r?/);
+		state.ops = state.parseSection(it, []);
+	}
 	if(opts['finalize']) {
 		var fin = state.finalize();
 		timespentParsing += (new Date()).getTime() - start;
