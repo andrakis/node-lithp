@@ -36,9 +36,12 @@
 	))))
 	(var DisplayHelp # :: (
 		(print "Type standard Lithp expressions.")
-		(print "Example: (set Fac #N::((if(== 0 N)((1))((* N(call Fac(- N 1)")
+		(print "Example: (var Fac #N::((if(== 0 N)((1))((* N(call Fac(- N 1)))))))(print (call Fac 10")
+		(print "Or for a recursive factorial:")
+		(print "((def f #N :: ( (def fi #N,A :: ( (if (== 1 N) ((A)) (else ((recurse (- N 1) (* N A)))) ) )) (fi N 1) )) (print (f 10)) )")
 		(print "")
 		(print "The following additional commands are available:")
+		(print "  ?        Print this help")
 		(print "  \\q       Quit the REPL")
 		(print "  \\d       Toggle DEBUG mode")
 		(print "  _        Print the last value")
@@ -60,14 +63,17 @@
 	(var CaseList (list CaseQuit CaseUnderscore CaseDebugMode CaseHelp1
 	                    CaseHelp2 CaseDefault))
 
-	(var LoopHandler (scope #Input :: (
+	(def repl-input (scope #Input :: (
 		(var Tmp (switch Input CaseList))
-		(if (!= Tmp nil) (
-			(set Result (get Tmp))
-			(print "Success, result: " Result)
-			(set "_" (get Result))
-		))
+		(set Result (get Tmp))
+		(print "Success, result: " Result)
+		(set "_" (get Result))
 		(set-top-level false)
+	)))
+	(export-global repl-input/1)
+
+	(var LoopHandler (scope #Input :: (
+		(repl-input Input)
 		(repl-loop)
 	)))
 
