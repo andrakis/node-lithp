@@ -1,5 +1,5 @@
 // Preprocessor directives
-#define { (scope # :: ((
-#define } )))
-#define \[ (list 
-#define \] )
+#define {(?=([^"]*"[^"]*")*[^"]*$) (scope # :: ((
+#define }(?=([^"]*"[^"]*")*[^"]*$) )))
+#define \[(?=([^"]*"[^"]*")*[^"]*$) (list 
+#define \](?=([^"]*"[^"]*")*[^"]*$) )
