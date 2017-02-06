@@ -129,9 +129,20 @@ if(print_times) {
 var results = {before: 0, before_time: 0, run: 0, run_time: 0};
 var macroInstance = null;
 
+var instance = new Lithp();
+
+var macroPaths = ["", "node_modules/lithp/", "../", "../node_modules/lithp/"];
+function findMacro (paths) {
+	var actual = paths[0] + "macro.lithp";
+	if(fs.existsSync(actual))
+		return actual;
+	return findMacro(paths.slice(1));
+}
+
 if(use_macro) {
 	console.error("Starting macro preprocessor");
-	var macroCode = fs.readFileSync("./macro.lithp").toString();
+	var path = findMacro(macroPaths);
+	var macroCode = fs.readFileSync(path).toString();
 	var macroParsed = BootstrapParser(macroCode, {finalize: true});
 	instance.setupDefinitions(macroParsed, "macro.lithp");
 	macroInstance = macroParsed;
@@ -140,7 +151,6 @@ if(use_macro) {
 
 files.forEach(function(file) {
 	var code = fs.readFileSync(file).toString();
-	var instance = new Lithp();
 	if(use_platform_v1) {
 		(require('./platform/v1/parser-lib')).setup(instance);
 	}
@@ -163,11 +173,12 @@ function runInInstance(instance, code, file) {
 		code = "(import stdlib)" + code;
 	if(use_macro) {
 		var result = timeCall("Preprocess code", () => {
-			code = instance.Invoke(macroInstance, "macro-preprocessor/1", [code]);
-			return code;
+			var processed = instance.Invoke(macroInstance, "macro-preprocessor/1", [code]);
+			return processed;
 		});
 		if(print_times)
 			console.error("Preprocessed in " + result[1] + "ms");
+		code = result[0];
 	}
 
 	var result = timeCall("Parse code", () => BootstrapParser(code, {finalize:!export_source &&

@@ -6,15 +6,33 @@
 	(import lists)
 	(import stream)
 
+	(def get-basedir #Dir :: (
+		(var Possibilities (list "" "node_modules/lithp/" "../" "../node_modules/lithp/"))
+		(get-basedir (head Possibilities) (tail Possibilities) Dir)
+	))
+
+	(def get-basedir #Head,Tail,Dir :: (
+		(var Actual (+ Head Dir))
+		(try (
+			(read-dir Actual)
+			(Actual)
+		) (catch # :: (
+			(if (> (length Tail) 0) (
+				(next get-basedir (head Tail) (tail Tail) Dir)
+			) (else (
+				(throw "Cannot find macro")
+			)))
+		)))
+	))
+
 	% Macro Preprocessor Class
 	(var MacroPreprocessor (class 'MacroPreprocessorClass'
 		(tuple (class-init) #Self,BaseDir :: (
-			(var Dir (get BaseDir))
+			(var Dir (get-basedir BaseDir))
 
 			(var Files (filter (read-dir Dir) #N :: (
 				(!= (null) (match N (regex "\\.h$")))
 			)))
-			%(print "Using headers: " (join Files " "))
 
 			(var Definitions (list))
 			(each Files (scope #File :: (

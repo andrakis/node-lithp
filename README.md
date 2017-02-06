@@ -155,7 +155,7 @@ You have three options:
 Language Status
 ===============
 
-Version: 0.20.0 (STABLE)
+Version: 0.20.2 (STABLE)
 ---------------------
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
