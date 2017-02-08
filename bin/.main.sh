@@ -18,7 +18,7 @@ case $name in
 	lithp)
         ;;
     repl)
-        mod=repl.lithp
+        mod=$dir/../repl.lithp
         ;;
 	macro)
         args=-m
