@@ -14,10 +14,6 @@ It aims to provide a basic framework as powerful as JavaScript. Much of this
 is accomplished through the use of native Lithp [modules](https://github.com/andrakis/node-lithp/tree/master/modules)
 and some powerful builtin functions allowing use of native Node.js modules.
 
-The [readfile example](https://github.com/andrakis/node-lithp/blob/master/samples/readfile.lithp) demonstrates all of the above features, importing the
-Node.js `fs` module, and calling `fs.readFileSync` and `fs.readFile` using a
-callback and a Lithp function to print the results.
-
 The [main interpreter](https://github.com/andrakis/node-lithp/blob/master/lib/interpreter.js) is around 270 lines of sparse code.
 This size would be even lower without the
 debug statements and detailed comments.
@@ -25,7 +21,7 @@ debug statements and detailed comments.
 Language Examples
 =================
 
-The examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
+More examples are in the [samples](https://github.com/andrakis/node-lithp/tree/master/samples) directory.
 
 Simple test
 -----------
@@ -35,6 +31,7 @@ Print a string.
 	((set Test "test")
 	 (print "Test: " Test))
 
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBQcmludCBhIHN0cmluZy4KKAogICAgKHNldCBUZXN0ICJ0ZXN0IikKICAgIChwcmludCAiVGVzdDogIiBUZXN0KQopCg==)
 
 Simple function
 ---------------
@@ -44,6 +41,7 @@ Define a simple function and call it.
 	((def add #A,B :: ((+ A B)))
 	 (print "Add 5+10: " (add 5 10)))
 
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgYSBzaW1wbGUgZnVuY3Rpb24gYW5kIGNhbGwgaXQuCigKICAgIChkZWYgYWRkICNBLEIgOjogKCgrIEEgQikpKQogICAgKHByaW50ICJBZGQgNSsxMDogIiAoYWRkIDUgMTApKQopCg==)
 
 Multiple functions and logic
 ----------------------------
@@ -52,8 +50,8 @@ Define two functions and use comparison logic to print a message
 based on the input.
 
 	(
-		(def is_zero#N :: ((== 0 N)))
-		(def test#N :: (
+		(def is_zero #N :: ((== 0 N)))
+		(def test #N :: (
 			(if (is_zero N) (
 				(print "N is zero")
 			) (else (
@@ -63,6 +61,8 @@ based on the input.
 		(test 1)
 		(test 0)
 	)
+
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgdHdvIGZ1bmN0aW9ucyBhbmQgdXNlIGNvbXBhcmlzb24gbG9naWMgdG8gcHJpbnQgYSBtZXNzYWdlCiUgYmFzZWQgb24gdGhlIGlucHV0LgooCiAgICAoZGVmIGlzX3plcm8gI04gOjogKCg9PSAwIE4pKSkKICAgIChkZWYgdGVzdCAjTiA6OiAoCiAgICAgICAgKGlmIChpc196ZXJvIE4pICgKICAgICAgICAgICAgKHByaW50ICJOIGlzIHplcm8iKQogICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAocHJpbnQgIk4gaXMgbm90IHplcm8sIGl0IGlzOiAiIE4pCiAgICAgICAgKSkpCiAgICApKQogICAgKHRlc3QgMSkKICAgICh0ZXN0IDApCikK)
 
 A recursive function
 --------------------
@@ -78,6 +78,8 @@ given number, and call it.
 	(set Test 10)
 	(print "factorial of " Test ": " (fac Test)))
 
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgYSByZWN1cnNpdmUgZnVuY3Rpb24gdGhhdCBjYWxjdWxhdGVzIHRoZSBmYWN0b3JpYWwgb2YgdGhlCiUgZ2l2ZW4gbnVtYmVyLCBhbmQgY2FsbCBpdC4KKAogICAgKGRlZiBmYWMgI04gOjogKAogICAgICAgIChpZiAoPT0gMCBOKSAoMSkKICAgICAgICAgICAgKGVsc2UgKCgqIE4gKGZhYyAoLSBOIDEpKSkpKQogICAgICAgICkKICAgICkpCiAgICAoc2V0IFRlc3QgMTApCiAgICAocHJpbnQgImZhY3RvcmlhbCBvZiAiIFRlc3QgIjogIiAoZmFjIFRlc3QpKQopCg==)
+
 A tail recursive function
 -------------------------
 
@@ -91,9 +93,11 @@ Tail recursion is implemented via the builtin recurse/* function.
 				(recurse (- N 1) (* N Acc))
 			)))
 		))
-		(inner N 0)
+		(inner N 1)
 	))
 	(print (fac-recursive 50)))
+
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBUYWlsIHJlY3Vyc2lvbiBpcyBpbXBsZW1lbnRlZCB2aWEgdGhlIGJ1aWx0aW4gcmVjdXJzZS8qIGZ1bmN0aW9uLgooCiAgICAoZGVmIGZhYy1yZWN1cnNpdmUgI04gOjogKAogICAgICAgIChkZWYgaW5uZXIgI04sQWNjIDo6ICgKICAgICAgICAgICAgKGlmICg9PSAwIE4pICgKICAgICAgICAgICAgICAgIChBY2MpCiAgICAgICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAgICAgKHJlY3Vyc2UgKC0gTiAxKSAoKiBOIEFjYykpCiAgICAgICAgICAgICkpKQogICAgICAgICkpCiAgICAgICAgKGlubmVyIE4gMSkKICAgICkpCiAgICAocHJpbnQgKGZhYy1yZWN1cnNpdmUgNTApKQopCg==)
 
 List comprehension
 ------------------
@@ -121,10 +125,16 @@ List comprehension is provided by the `lists` module. Here is an example usage:
 		  [ 10, 2, 2 ],
 		  [ 10, 4, 2 ] ]
 
+[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBMaXN0IGNvbXByZWhlbnNpb24gaXMgcHJvdmlkZWQgYnkgdGhlIGBsaXN0c2AgbW9kdWxlLiBIZXJlIGlzIGFuIGV4YW1wbGUgdXNhZ2U6CigKICAgIChpbXBvcnQgbGlzdHMpCiAgICAlIFN1cHBseSAzIGdlbmVyYXRvcnMKICAgIChzZXQgR2VuZXJhdG9ycyAobGlzdCAoc2VxIDEgMTApIChzZXEgMSA1KSAoc2VxIDEgMykpKQogICAgJSBIYW5kbGVyIHNpbXBseSByZXR1cm5zIGEgbGlzdCBvZiBnaXZlbiBudW1iZXJzCiAgICAoc2V0IEhhbmRsZXIgI1gsWSxaOjooKGxpc3QgWCBZIFopKSkKICAgICUgRmlsdGVyIGNoZWNrcyB0aGF0IFgsIFksIGFuZCBaIGFyZSBkaXZpc2libGUgYnkgdHdvIHVzaW5nIG1vZHVsbyAoQCkuCiAgICAoc2V0IEZpbHRlciAjWCxZLFo6OigoYW5kICg9PSAwIChAIFggMikpICg9PSAwIChAIFkgMikpICg9PSAwIChAIFogMikpKSkpCiAgICAocHJpbnQgIkxpc3QgY29tcHJlaGVuc2lvbiB0ZXN0OiAiIChsY29tcCBIYW5kbGVyIEdlbmVyYXRvcnMgRmlsdGVyKSkKKQ==)
+
 Running some sample code
 ========================
 
-You have three options:
+You have four options:
+
+  * The online Web IDE
+
+     An [IDE capable of running Lithp code](https://andrakis.github.io/lithp-webide) directly is available.
 
   * The online REPL
 
@@ -155,8 +165,10 @@ You have three options:
 Language Status
 ===============
 
-Version: 0.20.2 (STABLE)
+Version: 0.22.0 (STABLE)
 ---------------------
+
+A [web IDE](https://andrakis.github.io/lithp-webide) is available for developing in your browswer.
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
 for a fairly feature-complete compilation experience. The parser does not
@@ -181,6 +193,12 @@ corrected.
 
 Implemented milestones
 ----------------------
+
+* Lithp in the browser
+
+  * [lithp-pkg](https://github.com/andrakis/lithp-pkg) has been used to package all of Lithp up into a set of files that browserify can use.
+
+  * [Online web IDE](https://andrakis.github.io/lithp-webide), developed using [lithp-webide](https://github.com/andrakis/lithp-webide).
 
 * Parsing
 
@@ -313,6 +331,8 @@ Short term goals
   * [Livium](https://github.com/andrakis/lithp-livium) - an implementation of Vi in Lithp.
 
   * [Lithp-pkg](https://github.com/andrakis/lithp-pkg) - package Lithp into a browserified file.
+
+  * [Lithp-webide](https://github.com/andrakis/lithp-webide) - an IDE for the browser supporting Lithp.
 
   * [Dungeons of Lithp](https://github.com/andrakis/lithp-dol) - a MUD-style dungeon crawler.
 
