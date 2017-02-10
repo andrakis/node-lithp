@@ -165,7 +165,7 @@ You have four options:
 Language Status
 ===============
 
-Version: 0.22.0 (STABLE)
+Version: 0.22.4 (STABLE)
 ---------------------
 
 A [web IDE](https://andrakis.github.io/lithp-webide) is available for developing in your browswer.
