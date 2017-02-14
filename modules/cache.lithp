@@ -1,6 +1,5 @@
 (
 	% Caches calls
-	(platform v1)
 	(var Cache (dict))
 
 	(def cache-result (scope #Value,Name,Function :: (

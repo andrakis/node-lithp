@@ -7,20 +7,28 @@ RUNFLAGS=
 AST = $(patsubst %.lithp, %.ast, $(wildcard *.lithp))
 
 SUBDIRS = modules samples
-default: $(AST) final $(SUBDIRS)
+default: links
 all: default
 
 FINAL=
 
+none:
+
+links:
+	if [ ! -L "run" ]; then \
+		ln -s node_modules/lithp/run.js run; \
+	fi
+
 %.ast: %.lithp
 	$(eval FINAL += $<)
 
-final:
+ast: links $(SUBDIRS)
+	$(MAKE) -C modules RUNFLAGS="$(RUNFLAGS)"
 	@if [ "$(FINAL)"x != "x" ]; then $(RUN) $(RUNFLAGS) -c $(FINAL); fi
 
 $(SUBDIRS):
 	echo "Running make with flags: $(RUNFLAGS)"
-	$(MAKE) -C $@ RUNFLAGS=$(RUNFLAGS)
+	$(MAKE) -C $@ RUNFLAGS="$(RUNFLAGS)"
 
 clean:
 	-rm -f *.ast

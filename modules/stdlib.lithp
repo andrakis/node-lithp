@@ -1,22 +1,28 @@
 (
 	(var Modules (list
 		assert       % Assertion functions
-		%bignum      % Disabled by default, requires 'bignum' npm module
+		bignum       % 
 		buffer       % Provide some buffer-related functions
 		cache        % Function result cache
 		class        % Very basic class module
 		file         % File IO
 		lists        % List related functions
 		math         % Math functions
-		%readline    % Not a default module, relies on npm provided module.
-		             % Disabled because this is not cross-interpreter friendly.
+		match
+		pivot
 		random       % Random number functions
+		readline     % 
 		switch       % The classic switch function
+		stream
 		symbols      % Symbol functions
 	))
 	(def import-modules #List :: (
 		(if (!= 0 (length List)) (
-			(import (head List))
+			(try (
+				(import (head List))
+			) (catch # :: (
+				(print "Failed to import " (head List))
+			)))
 			(recurse (tail List))
 		))
 	))

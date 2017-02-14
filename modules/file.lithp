@@ -2,72 +2,76 @@
 (
 	(import "lists")
 
-	(var FS (require "fs"))
-	(var Path (require "path"))
+	(try (
+		(var FS (require "fs"))
+		(var Path (require "path"))
 
-	(def resolve #Filename :: ((invoke Path resolve Filename)))
-	(export-global resolve/1)
+		(def resolve #Filename :: ((invoke Path resolve Filename)))
+		(export-global resolve/1)
 
-	(def read-file #Filename :: (
-		(set Filename (invoke Path resolve Filename))
-		(invoke FS readFileSync Filename)
-	))
-
-	(def read-file #Filename,Callback :: (
-		(set Filename (invoke Path resolve Filename))
-		(invoke FS readFile Filename (js-bridge Callback))
-	))
-
-	(def file-exists #Path :: ((== (true) (invoke FS existsSync Path))))
-	(def is-file #Path :: ((== (true) (invoke (file-lstat Path) isFile))))
-	(def is-directory #Path :: ((and (! (is-file Path)) (file-exists Path))))
-	(def file-lstat #Path :: (
-		(try (
-			(invoke FS lstatSync Path)
-		) (catch #E :: (
-			(lstat-empty Path)
-		)))
-	))
-
-	(def read-dir #Path :: (
-		(invoke FS readdirSync Path)
-	))
-
-	(export-global read-dir/1)
-
-	(var LStatMembers (list "dev" "mode" "nlink" "uid" "gid" "rdev" "blksize" "ino"
-	                        "size" "blocks" "atime" "mtime" "ctime" "birthtime"))
-	(def lstat-empty #Path :: (
-		(var Result (dict))
-		% Set each member to 0
-		(each LStatMembers (scope #M :: ((dict-set Result M 0))))
-		% Fake the isFile function
-		(dict-set Result isFile (js-bridge # :: ((false))))
-		(get Result)
-	))
-
-	% Deprecated: (export-global readFileAsync/2)
-	(export-global read-file/1 read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
-
-	(def read-lines #File :: (
-		(split (to-string (read-file File)) (regex "\\r?\\n"))
-	))
-
-	(export-global read-lines/1)
-
-	(if (== true (get-def 'TEST')) (
-		(read-file "index.js" #Err,Data :: (
-			(print "Got Err:" Err)
-			(if (!= (undefined) Data) (
-				(print "Got Data:" (to-string Data))
-			))
+		(def read-file #Filename :: (
+			(set Filename (invoke Path resolve Filename))
+			(invoke FS readFileSync Filename)
 		))
 
-		(print (file-exists "run"))
-		(print (is-file "run"))
-		(print (is-file "src"))
-		(print (is-directory "src"))
-		(print (file-lstat "run1"))
-		(print (is-file "run1"))
-	))
+		(def read-file #Filename,Callback :: (
+			(set Filename (invoke Path resolve Filename))
+			(invoke FS readFile Filename (js-bridge Callback))
+		))
+
+		(def file-exists #Path :: ((== (true) (invoke FS existsSync Path))))
+		(def is-file #Path :: ((== (true) (invoke (file-lstat Path) isFile))))
+		(def is-directory #Path :: ((and (! (is-file Path)) (file-exists Path))))
+		(def file-lstat #Path :: (
+			(try (
+				(invoke FS lstatSync Path)
+			) (catch #E :: (
+				(lstat-empty Path)
+			)))
+		))
+
+		(def read-dir #Path :: (
+			(invoke FS readdirSync Path)
+		))
+
+		(export-global read-dir/1)
+
+		(var LStatMembers (list "dev" "mode" "nlink" "uid" "gid" "rdev" "blksize" "ino"
+								"size" "blocks" "atime" "mtime" "ctime" "birthtime"))
+		(def lstat-empty #Path :: (
+			(var Result (dict))
+			% Set each member to 0
+			(each LStatMembers (scope #M :: ((dict-set Result M 0))))
+			% Fake the isFile function
+			(dict-set Result isFile (js-bridge # :: ((false))))
+			(get Result)
+		))
+
+		% Deprecated: (export-global readFileAsync/2)
+		(export-global read-file/1 read-file/2 file-exists/1 is-file/1 is-directory/1 file-lstat/1)
+
+		(def read-lines #File :: (
+			(split (to-string (read-file File)) (regex "\\r?\\n"))
+		))
+
+		(export-global read-lines/1)
+
+		(if (== true (get-def 'TEST')) (
+			(read-file "index.js" #Err,Data :: (
+				(print "Got Err:" Err)
+				(if (!= (undefined) Data) (
+					(print "Got Data:" (to-string Data))
+				))
+			))
+
+			(print (file-exists "run"))
+			(print (is-file "run"))
+			(print (is-file "src"))
+			(print (is-directory "src"))
+			(print (file-lstat "run1"))
+			(print (is-file "run1"))
+		))
+	) (catch # :: (
+		(print "file module unavailable")
+	)))
 )

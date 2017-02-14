@@ -6,8 +6,6 @@
 %  Yields: (^ 0 (^ 1 (| 2 (+ 4 (| 8 (+ 16 32))))))))
 %
 (
-	(platform ext)
-
 	(import lists)
 	(import random)
 	(import symbols)

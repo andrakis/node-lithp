@@ -8,6 +8,7 @@
  * Supports the following flags:
  *   -s                     Load stdlib module
  *   -c                     Compile AST (Abstract Source Tree) from code
+ *   -j                     Compile AST files to .json extension
  *   -cc                    Compile AST files in compact mode (less readable)
  *   -d                     Enable Lithp debug mode.
  *   -p                     Enable bootstrap parser debug mode.
@@ -47,6 +48,7 @@ var print_atoms = false;
 var export_source = false;
 var use_macro = false;
 var use_compile = false;
+var use_ast_ext = "ast";
 var use_compact = false;
 
 function show_help () {
@@ -56,6 +58,7 @@ function show_help () {
 	console.error("Available flags:");
 	console.error("    -s              Load standard library module");
 	console.error("    -c              Compile Abstract Source Tree (AST) files");
+	console.error("    -j              Compile AST files to .json extension");
 	console.error("    -cc             Compile AST files in compact mode (less readable)");
 	console.error("    -d              Enable Lithp debug mode");
 	console.error("    -p              Enable bootstrap parser debug mode");
@@ -75,6 +78,8 @@ args.forEach(A => {
 		use_stdlib = true;
 	else if(A.match(/^-c(ompile)?$/))
 		use_compile = true;
+	else if(A.match(/^-j(son)?$/))
+		use_ast_ext = "json";
 	else if(A.match(/^-cc(ompact)?$/))
 		use_compact = true;
 	else if(A.match(/^-d(ebug)?$/))
@@ -165,7 +170,7 @@ files.forEach(function(file) {
 results['before']      += tallyCalls()[0];
 
 function runInInstance(instance, code, file) {
-	var astName = file.replace(/\.lithp$/, '.ast');
+	var astName = file.replace(/\.lithp$/, '.' + use_ast_ext);
 	if(use_compile)
 		console.log("Compiling " + astName + "...");
 
