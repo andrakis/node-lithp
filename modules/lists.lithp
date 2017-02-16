@@ -1,6 +1,10 @@
 % Provide functions working with lists.
 (
 	(if (get-def 'NATIVE') (
+		(print "Using NATIVE lists functions")
+	))
+
+	(if (get-def 'NATIVE') (
 		%% @doc Map a list with a callback.
 		%% @param List     list     elements to map
 		%% @param Callback #V::any  callback function. returns a value
@@ -80,39 +84,41 @@
 
 	(export-global map/2 foldl/3 each/2 seq/2 seq/3)
 
-	(var PermutationsPossibilities (list 0 1 2 6 24 120 720 5040 40320 362880 3628800 39916800 479001600))
+	(if (get-def 'NATIVE') (
+		(var PermutationsPossibilities (list 0 1 2 6 24 120 720 5040 40320 362880 3628800 39916800 479001600))
 
-	%% @doc Get all permutations of the given List.
-	%% @param List   list  elements for permutations
-	%% @return list  all   permutations for given List
-	% Based on code from: http://stackoverflow.com/questions/9960908/permutations-in-javascript/37580979#37580979
-	% Implements [Heap's method](http://homepage.math.uiowa.edu/~goodman/22m150.dir/2007/Permutation%20Generation%20Methods.pdf)
-	(def permutations #List :: (
-		(var Length (length List))
-		(var Result (list-fill (index PermutationsPossibilities Length) 0))
-		(var C (list-fill Length 0))
-		(var I 1)
-		(var J 1)
-		(index-set Result 0 (slice List))
-		(while ((< I Length)) (
-			(var CI (index C I))
-			(if (< CI I) (
-				(var K (? (@ I 2) (get CI) 0))
-				(var P (index List I))
-				(index-set List I (index List K))
-				(index-set List K P)
-				(index-set C I (+ 1 CI))
-				(set I 1)
-				(index-set Result J (slice List))
-				(set J (+ 1 (get J)))
-			) (else (
-				(index-set C I 0)
-				(set I (+ 1 (get I)))
-			)))
+		%% @doc Get all permutations of the given List.
+		%% @param List   list  elements for permutations
+		%% @return list  all   permutations for given List
+		% Based on code from: http://stackoverflow.com/questions/9960908/permutations-in-javascript/37580979#37580979
+		% Implements [Heap's method](http://homepage.math.uiowa.edu/~goodman/22m150.dir/2007/Permutation%20Generation%20Methods.pdf)
+		(def permutations #List :: (
+			(var Length (length List))
+			(var Result (list-fill (index PermutationsPossibilities Length) 0))
+			(var C (list-fill Length 0))
+			(var I 1)
+			(var J 1)
+			(index-set Result 0 (slice List))
+			(while ((< I Length)) (
+				(var CI (index C I))
+				(if (< CI I) (
+					(var K (? (@ I 2) (get CI) 0))
+					(var P (index List I))
+					(index-set List I (index List K))
+					(index-set List K P)
+					(index-set C I (+ 1 CI))
+					(set I 1)
+					(index-set Result J (slice List))
+					(set J (+ 1 (get J)))
+				) (else (
+					(index-set C I 0)
+					(set I (+ 1 (get I)))
+				)))
+			))
+			(get Result)
 		))
-		(get Result)
+		(export-global permutations/1)
 	))
-	(export-global permutations/1)
 
 	%% @doc Calculate sum of given list
 	%% @param L=List   list  elements to sum up
