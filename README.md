@@ -14,6 +14,8 @@ It aims to provide a basic framework as powerful as JavaScript. Much of this
 is accomplished through the use of native Lithp [modules](https://github.com/andrakis/node-lithp/tree/master/modules)
 and some powerful builtin functions allowing use of native Node.js modules.
 
+An online [web IDE](http://webide.sharafi.me) is available for running Lithp code in your browser. Parts of the web IDE are written in Lithp.
+
 The [main interpreter](https://github.com/andrakis/node-lithp/blob/master/lib/interpreter.js) is around 270 lines of sparse code.
 This size would be even lower without the
 debug statements and detailed comments.
@@ -165,10 +167,10 @@ You have four options:
 Language Status
 ===============
 
-Version: 0.22.4 (STABLE)
+Version: 0.24.0 (STABLE)
 ---------------------
 
-A [web IDE](https://andrakis.github.io/lithp-webide) is available for developing in your browswer.
+A [web IDE](http://webide.sharafi.me) is available for developing in your browswer. (A backup is also [available](https://andrakis.github.io/lithp-webide).)
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
 for a fairly feature-complete compilation experience. The parser does not
