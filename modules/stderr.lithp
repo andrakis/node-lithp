@@ -1,4 +1,9 @@
 (
-	(def stderr-write #V :: ((invoke (stderr) write V)))
-	(export-global stderr-write/1)
+	(if (== (host) "Node.js") (
+		(def stderr-write #V :: ((invoke (stderr) write V)))
+		(export-global stderr-write/1)
+	) (else (
+		(def stderr-write #V :: ((print "STDERR: " V)))
+		(export-global stderr-write/1)
+	)))
 )

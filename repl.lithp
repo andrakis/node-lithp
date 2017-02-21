@@ -9,5 +9,10 @@
 	(print "Welcome to Lithp v" (host-version) "running on" (host))
 	(print "Type \\q exit. Type ? for help.")
 
-	(repl-loop)
+	(if (== (host) "Node.js") (
+		(repl-loop)
+	) (else (
+		(import html-toolkit)
+		(htmlOnLoad # :: ((repl-loop)))
+	)))
 )

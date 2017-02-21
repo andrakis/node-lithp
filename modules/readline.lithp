@@ -30,6 +30,13 @@
 			))
 		))
 	) (else (
-		(print "readline: window.prompt() shim")
+		(if (== (host) "browser") (
+			(print "readline: browser host loaded")
+			(import html-toolkit)
+			(def readline #Question,Callback :: (
+				(prompt Question Callback)
+			))
+			(export-global readline/2)
+		))
 	)))
 )

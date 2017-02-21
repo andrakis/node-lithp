@@ -116,5 +116,10 @@
 		)))
 	))
 
-	(input-loop)
+	(if (== (host) "Node.js") (
+		(input-loop)
+	) (else (
+		(import html-toolkit)
+		(htmlOnLoad # :: ((input-loop)))
+	)))
 )
