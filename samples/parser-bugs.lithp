@@ -1,5 +1,4 @@
 (
-	(platform v1)
 	(var MyDict (dict
 		(tuple a 1)
 		(tuple b 2)

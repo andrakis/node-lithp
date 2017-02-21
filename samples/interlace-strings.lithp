@@ -1,5 +1,4 @@
 (
-	(platform v1)
 	(def f #P :: (
 		(invoke P "map" (js-bridge #W,I ::
 			(replace W (regex "." "g") (js-bridge #C,J ::

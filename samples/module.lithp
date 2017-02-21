@@ -6,7 +6,11 @@
 	(print "Path to module-lib:" Path)
 
 	% This brings all exported module functions into the current scope.
-	(import Path)
+	(try (
+		(import Path)
+	) (catch # :: (
+		(import "samples/module_lib")
+	)))
 
 	% Call a module function.
 	(print "Add 2+2:" (add 2 2))

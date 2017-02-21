@@ -5,8 +5,6 @@
 	(import "lists")
 	(import "readline")
 
-	(platform v1)
-
 	(var TabIndentCount 4)
 	(var TabIndent (invoke " " repeat TabIndentCount))
 

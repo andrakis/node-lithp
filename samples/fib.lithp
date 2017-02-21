@@ -1,5 +1,4 @@
 (
-	(platform v1)
 	(import "lists")
 	(var FL (dict))
 	(def fib #N::((if (< N 2) (1) ((+ (fibFL (- N 2)) (fibFL (- N 1)))))))

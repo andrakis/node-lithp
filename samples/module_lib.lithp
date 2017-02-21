@@ -1,9 +1,5 @@
 % This is an example module, designed to be used with module.lithp.
 (
-	% Load platform v1, if only to demonstrate it.
-	% None of the functions here require platform v1.
-	(platform v1)
-
 	% Define some functions to export
 	(def add #A :: (
 		(scope #B :: ((+ A B)))

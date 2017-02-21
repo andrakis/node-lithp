@@ -1,6 +1,4 @@
 (
-	(platform v1)
-	(platform ext)
 	(import "file")
 	(import "switch")
 
