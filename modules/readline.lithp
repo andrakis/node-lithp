@@ -31,10 +31,12 @@
 		))
 	) (else (
 		(if (== (host) "browser") (
-			(print "readline: browser host loaded")
+			(print "readline: browser hack")
 			(import html-toolkit)
 			(def readline #Question,Callback :: (
-				(prompt Question Callback)
+				(htmlOnLoad (scope # :: (
+					(prompt Question Callback)
+				)))
 			))
 			(export-global readline/2)
 		))
