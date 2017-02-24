@@ -146,7 +146,7 @@ ParserState.prototype.classify = function(ch) {
 				val = EX_ATOM;
 			else if(ch.match(/^[A-Z][A-Za-z0-9_]*$/))
 				val = EX_VARIABLE | EX_FUNCTION_PARAM;
-			else if(ch.match(/^-?[0-9][0-9.]*$/))
+			else if(ch.match(/^-?[0-9e][0-9e.]*$/))
 				val = EX_NUMBER | EX_ATOM;
 			else if(ch.length > 1 && ch.match(/^".*"$/))
 				val = EX_STRING_DOUBLE;
