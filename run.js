@@ -7,6 +7,7 @@
  * Currently uses Platform V0 Bootstrap parser.
  * Supports the following flags:
  *   -s                     Load stdlib module
+ *   -sl                    Load stackless interpreter
  *   -c                     Compile AST (Abstract Source Tree) from code
  *   -j                     Compile AST files to .json extension
  *   -cc                    Compile AST files in compact mode (less readable)
@@ -50,6 +51,7 @@ var use_macro = false;
 var use_compile = false;
 var use_ast_ext = "ast";
 var use_compact = false;
+var use_stackless = false;
 
 function show_help () {
 	console.error("Usage:");
@@ -57,6 +59,7 @@ function show_help () {
 	console.error("Multiple filenames can be passed.");
 	console.error("Available flags:");
 	console.error("    -s              Load standard library module");
+	console.error("    -sl             Load stackless interpreter");
 	console.error("    -c              Compile Abstract Source Tree (AST) files");
 	console.error("    -j              Compile AST files to .json extension");
 	console.error("    -cc             Compile AST files in compact mode (less readable)");
@@ -76,6 +79,8 @@ args.forEach(A => {
 	var matches;
 	if(A.match(/^-s(tdlib)?$/))
 		use_stdlib = true;
+	else if(A.match(/^-s(tack)?l(ess)?$/))
+		use_stackless = true;
 	else if(A.match(/^-c(ompile)?$/))
 		use_compile = true;
 	else if(A.match(/^-j(son)?$/))
@@ -126,6 +131,8 @@ if(use_debug)
 	lithp.set_debug_flag(true);
 if(use_parser_debug)
 	global._lithp.set_parser_debug(true);
+if(use_stackless)
+	require('./lib/interpreter2.js');
 
 if(print_times) {
 	console.error("Interpreter loaded in " + (new Date().getTime() - _lithp_start ) + "ms");
