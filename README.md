@@ -323,6 +323,10 @@ Implemented milestones
 Short term goals
 ----------------
 
+* Stackless interpreter - much faster and allowing infinite call depth. Based on a [paper on the implementation of Stackless Python](http://www.stackless.com/spcpaper.htm).
+
+* Web IDE Version 2 - a fully integrated IDE [[under development](https://andrakis.github.io/ide2/)].
+
 * Implement a Lithp package system with library dependancies.
 
 * Expand the standard module library.
