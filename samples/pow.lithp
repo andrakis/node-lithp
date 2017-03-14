@@ -2,7 +2,9 @@
 (
 	(def pow #X,Y :: (
 		(if (== Y 1)
-			X
+			% TODO: Parser bug
+			% X
+			(get X)
 		(else (
 			(* X (pow X (- Y 1)))
 		)))
