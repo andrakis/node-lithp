@@ -1,3 +1,7 @@
+% A solution to a code-golf challenge to print numbers 1 - 10.
+% Included are two different solutions, one importing a module and
+% the other attempting a recusrive implementation.
+% The module version ended up shorter entirely.
 (
 	(import "lists")(def f #::((each (seq 1 10) #N::((print N)))))
 	(def x #::((def y #N::((print N)(if (< N 10) ((y (+ N 1))))))(y 1)))

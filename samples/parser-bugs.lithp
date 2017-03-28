@@ -1,7 +1,0 @@
-(
-	(var MyDict (dict
-		(tuple a 1)
-		(tuple b 2)
-	))
-	(print MyDict)
-)

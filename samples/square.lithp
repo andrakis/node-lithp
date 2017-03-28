@@ -1,3 +1,6 @@
+% An entry for a code-golf challenge. A few bytes could be shaved off now.
+% Prints a square of the given size (in the example below, 10 characters wide.)
+% Doesn't look correct on most fonts, though.
 (
 	(import "lists")
 	(def s #N::((var X (repeat "#" N))(print X)(each (seq 3 N) (scope #X::((print (+ "#" (repeat " " (- N 2)) "#")))))(print X)))

@@ -1,3 +1,5 @@
+% An entry for a code-golf challenge.
+% Displays an ASCII brick wall.
 (
 	(def x #::((print (replace (repeat "_|__" 175) (regex "(.{70})" "g") "$1\n"))))
 	(x)

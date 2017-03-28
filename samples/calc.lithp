@@ -1,6 +1,6 @@
 % Simple Accumulative Calculator
 %
-%
+% Works best in Node.js environment. Expect issues running in Web IDE.
 (
 	(import lists)
 	(import math)

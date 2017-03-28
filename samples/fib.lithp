@@ -1,10 +1,45 @@
+% Fib-orial demonstration.
+% This uses caching for a much faster execution time, and forms the basis of what
+% would become the "cache" module.
 (
 	(import "lists")
-	(var FL (dict))
-	(def fib #N::((if (< N 2) (1) ((+ (fibFL (- N 2)) (fibFL (- N 1)))))))
-	%(def fib #N::((if (< N 2) (1) ((+ (fib (- N 1)) (fib (- N 2)))))))
-	(def fibFL #N::((if (dict-present FL N) ((dict-get FL N)) ((var I (fib N))(set FL (dict-set FL N I))(I)))))
+	(var Mode caching) % Set to anything else to demonstrate non-caching example
+
+	% Define the fibonacci sequence, fib/1, based on Mode
+	(if (== caching Mode) (
+		% This section represents the result cache.
+		(var FL (dict))
+		% A version of fib/1 that checks the results cache (FL)
+		(def fibFL #N :: (
+			(if (dict-present FL N) (
+				(dict-get FL N)
+			) (else (
+				(var I (fib N))
+				(set FL (dict-set FL N I))
+				(I))
+			))
+		))
+		% And this is the implementation altered to use fibFL lookup.
+		(def fib #N::((if (< N 2) (1) ((+ (fibFL (- N 2)) (fibFL (- N 1)))))))
+		% Export to make available in parent chain
+		(export-global fib/1)
+	) (else (
+		% This is a direct recursive solution that is incredibly slow.
+		(def fib #N::((if (< N 2) (1) ((+ (fib (- N 1)) (fib (- N 2)))))))
+		% Export to make available in parent chain
+		(export-global fib/1)
+	)))
+
+	% This is the fib-orial implmention.
 	(def fib-orial #N::((prod (map (seq 1 N) (scope #I::((fib I)))))))
-	(each (seq 2 20) (scope #N :: ((print (fib-orial N)))))
-	%(print (fib-orial 2))
+
+	(if (== caching Mode) (
+		% When caching, we can demonstrate a large number of fast calculations
+		% We call fib-orial with the numbers 2..20 inclusive
+		(each (seq 2 20) (scope #N :: ((print (fib-orial N)))))
+	) (else (
+		% Non-caching, show a very small calculation - it will likely take longer
+		% than the caching version does in total.
+		(print (fib-orial 15))
+	)))
 )

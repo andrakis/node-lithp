@@ -1,3 +1,4 @@
+% A simple algorithm to output the aspest ratio of a circle.
 (
 	(import "lists")
 	(def f #A,B,C::(

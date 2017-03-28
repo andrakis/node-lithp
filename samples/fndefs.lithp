@@ -1,7 +1,10 @@
+% Tests applying arbritray functions.
 (
 	(import lists)
 	(import symbols)
 
+	% These are inbuilt operators.
+	% The symbols module takes care of looking them up based on given arity.
 	(var Operators (list + - / *))
 	(var A 5)
 	(var B 10)

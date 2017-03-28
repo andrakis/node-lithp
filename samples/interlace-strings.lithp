@@ -1,4 +1,6 @@
+% An entry for a code golf challenge.
 (
+	% Readable version:
 	(def f #P :: (
 		(invoke P "map" (js-bridge #W,I ::
 			(replace W (regex "." "g") (js-bridge #C,J ::
@@ -6,6 +8,7 @@
 			))
 		))
 	))
+	% Golfed version (now out of date):
 	(def f #P::((invoke P "map" (js-bridge #W,I::(replace W (regex "." "g") (js-bridge #C,J::(index (index P (& (+ I J) 1)) J)))))))
 	(print (f (list "Hello," "world!")))
 )

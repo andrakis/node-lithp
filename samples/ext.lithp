@@ -2,6 +2,8 @@
 %
 % Extension platforms add new builtin functions in JavaScript.
 % See the example extension in ext/index.js
+%
+% This will not work in the Web IDE.
 (
 	% This loads the file ext/index.js as a platform library.
 	% You could specify other names or paths, but if they contain

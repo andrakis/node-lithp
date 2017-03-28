@@ -1,3 +1,4 @@
+% An entry for a code-golf challenge. Now much out of date due to parser improvements.
 (
 	(def f #N,R::((if (< N 2) ((? (!= 0 N) (* 2 R) 1)) ((/ (* (* (* (* (f (- N 2) R) 2) (pi)) R) R) N)))))
 	(print (f 1 1))

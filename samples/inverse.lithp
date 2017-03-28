@@ -1,3 +1,5 @@
+% An entry for a code-golf challenge involving inversing a binary number.
+% Uses js-bridge due to lack of inbuilt regex replace function.
 (
 	(def i #S::((replace S (regex "\\d" "g") (js-bridge #X::((^ X 1))))))
 	(print (i "01010101111000"))

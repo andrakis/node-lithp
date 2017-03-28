@@ -1,9 +1,0 @@
-(
-	(import "lists")
-	(def c #S,N::(
-		(def r #::((map (seq 1 N) #::(chr (parse-int (* (rand) 10000))))))
-		%(replace S (regex "." "g") (js-bridge #C::((join (++ (r) C) ""))))
-		(join (map (split S "") #C :: ((list C))) 
-	))
-	(print (c "The treasure is here" 2))
-)

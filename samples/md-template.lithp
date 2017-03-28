@@ -1,5 +1,8 @@
-#!/home/freestyle/git/node-lithp/run
 % Markdown Template
+% This creates a Markdown template for sample Lithp code for an answer
+% to a code-golf challenge. It includes a correct link to the language
+% Github page, as well as a count of characters and correct indentation
+% for markup.
 (
 	(import "file")
 	(import "lists")

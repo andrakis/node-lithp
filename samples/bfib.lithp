@@ -1,3 +1,6 @@
+% Bignum version of fib-orial test.
+% Only works under Node.js with the "bignum" NPM package installed.
+% Will not work in Web IDE.
 (
 	(import "bignum")
 	(import "lists")
