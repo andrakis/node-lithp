@@ -1,5 +1,6 @@
+% A work-in-progress entry for a Codegolf challenge:
+% http://codegolf.stackexchange.com/questions/53100/integral-triangles-and-integral-medians
 (
-	(import cache)
 	(import lists)
 	(import math)
 
@@ -9,12 +10,6 @@
 		(== (* S S) V)
 	))
 
-%	(def isMedian #V :: (
-%		(cache-result V isMedian (get "isMedianImpl/1"))
-%	))
-%	(def isMedianImpl #V :: (
-%		(and (== 0 (@ V 4)) (isSquare (round (/ V 4))))
-%	))
 	(var MedianCache (dict))
 	(def isMedian #V :: (
 		(if (dict-present MedianCache V) (
@@ -56,18 +51,5 @@
 		(NTri)
 	))
 
-	(def test #N :: (
-		(var A 5)
-		(var B 5)
-		(var C 6)
-		%(var Test2 (+ (* A A) (* C C)))
-		%(var Test2 (- (* 2 Test2) (* B B)))
-		(var Test3 (+ (* A A) (* B B)))
-		(var Test3 (- (* 2 Test3) (* C C)))
-		%(print "isMedian(" Test2 "): " (isMedian Test2))
-		(print "isMedian(" Test3 "): " (isMedian Test3))
-	))
-
 	(print (main 20))
-	%(print (test 10))
 )
