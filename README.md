@@ -167,10 +167,10 @@ You have four options:
 Language Status
 ===============
 
-Version: 0.24.2 (STABLE)
+Version: 0.30.0 (STABLE)
 ---------------------
 
-A [web IDE](http://webide.sharafi.me) is available for developing in your browswer. (A backup is also [available](https://andrakis.github.io/lithp-webide).)
+A [web IDE](http://andrakis.github.io/ide2) is available for developing in your browswer. (A backup is also [available](https://andrakis.github.io/lithp-webide).)
 
 Currently the language can run hand-compiled code or use the Bootstrap Parser
 for a fairly feature-complete compilation experience. The parser does not
@@ -195,6 +195,15 @@ corrected.
 
 Implemented milestones
 ----------------------
+
+Listed in order of implementation, most recent first.
+
+* Speed improvements
+
+  * Since most functions are defined in the uppermost chain, including builtins, implements a new method of grabbing functions by defaulting
+    to the top chain.
+
+  * Updates how Lithp symbols are grabbed from closure, improving lookup speed.
 
 * Lithp in the browser
 
