@@ -14,7 +14,7 @@ It aims to provide a basic framework as powerful as JavaScript. Much of this
 is accomplished through the use of native Lithp [modules](https://github.com/andrakis/node-lithp/tree/master/modules)
 and some powerful builtin functions allowing use of native Node.js modules.
 
-An online [web IDE](http://webide.sharafi.me) is available for running Lithp code in your browser. Parts of the web IDE are written in Lithp.
+An online [web IDE](http://andrakis.github.io/ide2/) is available for running Lithp code in your browser. Parts of the web IDE are written in Lithp.
 
 The [main interpreter](https://github.com/andrakis/node-lithp/blob/master/lib/interpreter.js) is around 270 lines of sparse code.
 This size would be even lower without the
