@@ -167,7 +167,7 @@ You have four options:
 Language Status
 ===============
 
-Version: 0.30.0 (STABLE)
+Version: 0.30.2 (STABLE)
 ---------------------
 
 A [web IDE](http://andrakis.github.io/ide2) is available for developing in your browswer. (A backup is also [available](https://andrakis.github.io/lithp-webide).)

@@ -18,6 +18,7 @@ links:
 	if [ ! -L "run" ]; then \
 		ln -s node_modules/lithp/run.js run; \
 	fi
+	ln -s package.json package.ast ||:
 
 %.ast: %.lithp
 	$(eval FINAL += $<)
