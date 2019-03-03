@@ -33,7 +33,7 @@ Print a string.
 	((set Test "test")
 	 (print "Test: " Test))
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBQcmludCBhIHN0cmluZy4KKAogICAgKHNldCBUZXN0ICJ0ZXN0IikKICAgIChwcmludCAiVGVzdDogIiBUZXN0KQopCg==)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBQcmludCBhIHN0cmluZy4KKAogICAgKHNldCBUZXN0ICJ0ZXN0IikKICAgIChwcmludCAiVGVzdDogIiBUZXN0KQopCg==)
 
 Simple function
 ---------------
@@ -43,7 +43,7 @@ Define a simple function and call it.
 	((def add #A,B :: ((+ A B)))
 	 (print "Add 5+10: " (add 5 10)))
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgYSBzaW1wbGUgZnVuY3Rpb24gYW5kIGNhbGwgaXQuCigKICAgIChkZWYgYWRkICNBLEIgOjogKCgrIEEgQikpKQogICAgKHByaW50ICJBZGQgNSsxMDogIiAoYWRkIDUgMTApKQopCg==)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBEZWZpbmUgYSBzaW1wbGUgZnVuY3Rpb24gYW5kIGNhbGwgaXQuCigKICAgIChkZWYgYWRkICNBLEIgOjogKCgrIEEgQikpKQogICAgKHByaW50ICJBZGQgNSsxMDogIiAoYWRkIDUgMTApKQopCg==)
 
 Multiple functions and logic
 ----------------------------
@@ -64,7 +64,7 @@ based on the input.
 		(test 0)
 	)
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgdHdvIGZ1bmN0aW9ucyBhbmQgdXNlIGNvbXBhcmlzb24gbG9naWMgdG8gcHJpbnQgYSBtZXNzYWdlCiUgYmFzZWQgb24gdGhlIGlucHV0LgooCiAgICAoZGVmIGlzX3plcm8gI04gOjogKCg9PSAwIE4pKSkKICAgIChkZWYgdGVzdCAjTiA6OiAoCiAgICAgICAgKGlmIChpc196ZXJvIE4pICgKICAgICAgICAgICAgKHByaW50ICJOIGlzIHplcm8iKQogICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAocHJpbnQgIk4gaXMgbm90IHplcm8sIGl0IGlzOiAiIE4pCiAgICAgICAgKSkpCiAgICApKQogICAgKHRlc3QgMSkKICAgICh0ZXN0IDApCikK)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBEZWZpbmUgdHdvIGZ1bmN0aW9ucyBhbmQgdXNlIGNvbXBhcmlzb24gbG9naWMgdG8gcHJpbnQgYSBtZXNzYWdlCiUgYmFzZWQgb24gdGhlIGlucHV0LgooCiAgICAoZGVmIGlzX3plcm8gI04gOjogKCg9PSAwIE4pKSkKICAgIChkZWYgdGVzdCAjTiA6OiAoCiAgICAgICAgKGlmIChpc196ZXJvIE4pICgKICAgICAgICAgICAgKHByaW50ICJOIGlzIHplcm8iKQogICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAocHJpbnQgIk4gaXMgbm90IHplcm8sIGl0IGlzOiAiIE4pCiAgICAgICAgKSkpCiAgICApKQogICAgKHRlc3QgMSkKICAgICh0ZXN0IDApCikK)
 
 A recursive function
 --------------------
@@ -80,7 +80,7 @@ given number, and call it.
 	(set Test 10)
 	(print "factorial of " Test ": " (fac Test)))
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBEZWZpbmUgYSByZWN1cnNpdmUgZnVuY3Rpb24gdGhhdCBjYWxjdWxhdGVzIHRoZSBmYWN0b3JpYWwgb2YgdGhlCiUgZ2l2ZW4gbnVtYmVyLCBhbmQgY2FsbCBpdC4KKAogICAgKGRlZiBmYWMgI04gOjogKAogICAgICAgIChpZiAoPT0gMCBOKSAoMSkKICAgICAgICAgICAgKGVsc2UgKCgqIE4gKGZhYyAoLSBOIDEpKSkpKQogICAgICAgICkKICAgICkpCiAgICAoc2V0IFRlc3QgMTApCiAgICAocHJpbnQgImZhY3RvcmlhbCBvZiAiIFRlc3QgIjogIiAoZmFjIFRlc3QpKQopCg==)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBEZWZpbmUgYSByZWN1cnNpdmUgZnVuY3Rpb24gdGhhdCBjYWxjdWxhdGVzIHRoZSBmYWN0b3JpYWwgb2YgdGhlCiUgZ2l2ZW4gbnVtYmVyLCBhbmQgY2FsbCBpdC4KKAogICAgKGRlZiBmYWMgI04gOjogKAogICAgICAgIChpZiAoPT0gMCBOKSAoMSkKICAgICAgICAgICAgKGVsc2UgKCgqIE4gKGZhYyAoLSBOIDEpKSkpKQogICAgICAgICkKICAgICkpCiAgICAoc2V0IFRlc3QgMTApCiAgICAocHJpbnQgImZhY3RvcmlhbCBvZiAiIFRlc3QgIjogIiAoZmFjIFRlc3QpKQopCg==)
 
 A tail recursive function
 -------------------------
@@ -99,7 +99,7 @@ Tail recursion is implemented via the builtin recurse/* function.
 	))
 	(print (fac-recursive 50)))
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBUYWlsIHJlY3Vyc2lvbiBpcyBpbXBsZW1lbnRlZCB2aWEgdGhlIGJ1aWx0aW4gcmVjdXJzZS8qIGZ1bmN0aW9uLgooCiAgICAoZGVmIGZhYy1yZWN1cnNpdmUgI04gOjogKAogICAgICAgIChkZWYgaW5uZXIgI04sQWNjIDo6ICgKICAgICAgICAgICAgKGlmICg9PSAwIE4pICgKICAgICAgICAgICAgICAgIChBY2MpCiAgICAgICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAgICAgKHJlY3Vyc2UgKC0gTiAxKSAoKiBOIEFjYykpCiAgICAgICAgICAgICkpKQogICAgICAgICkpCiAgICAgICAgKGlubmVyIE4gMSkKICAgICkpCiAgICAocHJpbnQgKGZhYy1yZWN1cnNpdmUgNTApKQopCg==)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBUYWlsIHJlY3Vyc2lvbiBpcyBpbXBsZW1lbnRlZCB2aWEgdGhlIGJ1aWx0aW4gcmVjdXJzZS8qIGZ1bmN0aW9uLgooCiAgICAoZGVmIGZhYy1yZWN1cnNpdmUgI04gOjogKAogICAgICAgIChkZWYgaW5uZXIgI04sQWNjIDo6ICgKICAgICAgICAgICAgKGlmICg9PSAwIE4pICgKICAgICAgICAgICAgICAgIChBY2MpCiAgICAgICAgICAgICkgKGVsc2UgKAogICAgICAgICAgICAgICAgKHJlY3Vyc2UgKC0gTiAxKSAoKiBOIEFjYykpCiAgICAgICAgICAgICkpKQogICAgICAgICkpCiAgICAgICAgKGlubmVyIE4gMSkKICAgICkpCiAgICAocHJpbnQgKGZhYy1yZWN1cnNpdmUgNTApKQopCg==)
 
 List comprehension
 ------------------
@@ -127,7 +127,7 @@ List comprehension is provided by the `lists` module. Here is an example usage:
 		  [ 10, 2, 2 ],
 		  [ 10, 4, 2 ] ]
 
-[Try it online!](https://andrakis.github.io/lithp-webide/?code=JSBMaXN0IGNvbXByZWhlbnNpb24gaXMgcHJvdmlkZWQgYnkgdGhlIGBsaXN0c2AgbW9kdWxlLiBIZXJlIGlzIGFuIGV4YW1wbGUgdXNhZ2U6CigKICAgIChpbXBvcnQgbGlzdHMpCiAgICAlIFN1cHBseSAzIGdlbmVyYXRvcnMKICAgIChzZXQgR2VuZXJhdG9ycyAobGlzdCAoc2VxIDEgMTApIChzZXEgMSA1KSAoc2VxIDEgMykpKQogICAgJSBIYW5kbGVyIHNpbXBseSByZXR1cm5zIGEgbGlzdCBvZiBnaXZlbiBudW1iZXJzCiAgICAoc2V0IEhhbmRsZXIgI1gsWSxaOjooKGxpc3QgWCBZIFopKSkKICAgICUgRmlsdGVyIGNoZWNrcyB0aGF0IFgsIFksIGFuZCBaIGFyZSBkaXZpc2libGUgYnkgdHdvIHVzaW5nIG1vZHVsbyAoQCkuCiAgICAoc2V0IEZpbHRlciAjWCxZLFo6OigoYW5kICg9PSAwIChAIFggMikpICg9PSAwIChAIFkgMikpICg9PSAwIChAIFogMikpKSkpCiAgICAocHJpbnQgIkxpc3QgY29tcHJlaGVuc2lvbiB0ZXN0OiAiIChsY29tcCBIYW5kbGVyIEdlbmVyYXRvcnMgRmlsdGVyKSkKKQ==)
+[Try it online!](https://andrakis.github.io/ide2/?code=JSBMaXN0IGNvbXByZWhlbnNpb24gaXMgcHJvdmlkZWQgYnkgdGhlIGBsaXN0c2AgbW9kdWxlLiBIZXJlIGlzIGFuIGV4YW1wbGUgdXNhZ2U6CigKICAgIChpbXBvcnQgbGlzdHMpCiAgICAlIFN1cHBseSAzIGdlbmVyYXRvcnMKICAgIChzZXQgR2VuZXJhdG9ycyAobGlzdCAoc2VxIDEgMTApIChzZXEgMSA1KSAoc2VxIDEgMykpKQogICAgJSBIYW5kbGVyIHNpbXBseSByZXR1cm5zIGEgbGlzdCBvZiBnaXZlbiBudW1iZXJzCiAgICAoc2V0IEhhbmRsZXIgI1gsWSxaOjooKGxpc3QgWCBZIFopKSkKICAgICUgRmlsdGVyIGNoZWNrcyB0aGF0IFgsIFksIGFuZCBaIGFyZSBkaXZpc2libGUgYnkgdHdvIHVzaW5nIG1vZHVsbyAoQCkuCiAgICAoc2V0IEZpbHRlciAjWCxZLFo6OigoYW5kICg9PSAwIChAIFggMikpICg9PSAwIChAIFkgMikpICg9PSAwIChAIFogMikpKSkpCiAgICAocHJpbnQgIkxpc3QgY29tcHJlaGVuc2lvbiB0ZXN0OiAiIChsY29tcCBIYW5kbGVyIEdlbmVyYXRvcnMgRmlsdGVyKSkKKQ==)
 
 Running some sample code
 ========================
@@ -136,7 +136,7 @@ You have four options:
 
   * The online Web IDE
 
-     An [IDE capable of running Lithp code](https://andrakis.github.io/lithp-webide) directly is available.
+     An [IDE capable of running Lithp code](https://andrakis.github.io/ide2) directly is available.
 
   * The online REPL
 
