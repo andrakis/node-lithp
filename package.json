@@ -4,7 +4,7 @@
   "description": "A small Lisp-like language with a tiny interpreter",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "postinstall": "if [ ! -L run ]; then ln -s run.js run; fi"
   },
   "repository": {
     "type": "git",
@@ -24,8 +24,5 @@
     "lithp": "bin/lithp",
     "lithp-repl": "bin/repl",
     "lithp-macro": "bin/macro"
-  },
-  "scripts": {
-    "postinstall": "if [ ! -L run ]; then ln -s run.js run; fi"
   }
 }
