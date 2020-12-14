@@ -196,7 +196,7 @@ function runInInstance(instance, code, file) {
 	} else if(use_compile) {
 		var jsonSeparator = "\t";
 		if(use_compact) jsonSeparator = "";
-		fs.writeFile(astName, JSON.stringify(parsed.export(), undefined, jsonSeparator));
+		fs.writeFileSync(astName, JSON.stringify(parsed.export(), undefined, jsonSeparator));
 		return;
 	}
 
